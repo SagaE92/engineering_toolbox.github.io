@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f1a">
+<title>Engineering Tools · Saga Electrics</title>
+<style>
+:root{--bg:#0f0f1a;--card:#1a1a2e;--acc:#4fc3f7;--text:#e8eaf0;--muted:#9aa0b4;--line:#2a2a44;--ok:#7ee08a;--bad:#ff8a80;--warn:#ffd54f}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
+header{padding:16px 16px 10px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;max-width:720px;margin:0 auto}
+header h1{margin:0;font-size:1.2rem;letter-spacing:.01em;white-space:nowrap}
+header p{margin:2px 0 0;color:var(--acc);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase}
+.units{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.units button{background:transparent;color:var(--muted);border:0;padding:8px 10px;min-height:44px;font:inherit;font-size:.85rem;cursor:pointer}
+.units button.on{background:var(--acc);color:#0f0f1a;font-weight:700}
+nav{position:sticky;top:0;z-index:10;background:rgba(15,15,26,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+nav .tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;max-width:720px;margin:0 auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+nav .tabs::-webkit-scrollbar{display:none}
+nav button{flex:none;background:var(--card);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:10px 16px;min-height:44px;font:inherit;font-size:.95rem;cursor:pointer;white-space:nowrap}
+nav button[aria-selected=true]{background:var(--acc);color:#0f0f1a;border-color:var(--acc);font-weight:700}
+main{max-width:720px;margin:0 auto;padding:12px 12px 80px}
+section[role=tabpanel]{display:none}
+section[role=tabpanel].on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
+.card h2{margin:0 0 10px;font-size:1rem;color:var(--acc);font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.full{grid-column:1/-1}
+label{display:block;font-size:.82rem;color:var(--muted);margin:0 0 4px}
+input,select{width:100%;min-height:48px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#12122a;color:var(--text);font:inherit;font-size:1.05rem}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:0;border-color:var(--acc)}
+input.calc{color:var(--acc);border-style:dashed}
+textarea{width:100%;min-height:110px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#12122a;color:var(--text);font:.9rem ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.inrow{display:flex;gap:8px}
+.inrow input{flex:1;min-width:0}
+.inrow select{width:auto;flex:none}
+.btn{background:var(--acc);color:#0f0f1a;border:0;border-radius:10px;min-height:48px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.result{background:#10102a;border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:12px;padding:12px;margin-top:12px;position:relative}
+.result.ok{border-left-color:var(--ok)}
+.result.bad{border-left-color:var(--bad)}
+.big{font-size:1.6rem;font-weight:800;line-height:1.2;word-break:break-word}
+.sub{color:var(--muted);font-size:.9rem}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.95rem}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;word-break:break-word}
+.copy{position:absolute;top:8px;right:8px;background:transparent;color:var(--acc);border:1px solid var(--line);border-radius:8px;min-height:36px;min-width:56px;padding:4px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.result .big,.result .first{padding-right:64px}
+.note{color:var(--muted);font-size:.85rem;margin:8px 0 0}
+table{width:100%;border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 3px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{color:var(--acc);font-weight:600}
+tr.pick td{background:rgba(79,195,247,.14);font-weight:700}
+td.l,th.l{text-align:left}
+.pass{color:var(--ok)}.fail{color:var(--bad)}
+.palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.palette button{min-height:58px;border-radius:12px;border:2px solid #333;font:inherit;font-weight:800;font-size:1.1rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px}
+.palette button small{font-size:.65rem;font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap;min-height:52px;align-items:center}
+.chip{display:flex;align-items:center;gap:8px;background:#10102a;border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 6px;font-weight:700}
+.sw{display:inline-block;width:28px;height:28px;border-radius:50%;border:2px solid #555;flex:none}
+.sw.s{width:16px;height:16px;border-width:1px;vertical-align:-3px;margin-right:6px}
+.err{color:var(--bad)}
+.warn{color:var(--warn)}
+@media (max-width:360px){.grid3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Engineering Tools</h1><p>Saga Electrics</p></div>
+  <div class="units" role="group" aria-label="Units"><button type="button" id="uMetric" class="on">Metric</button><button type="button" id="uImperial">Imperial</button></div>
+</header>
+<nav><div class="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="wire" aria-selected="true">Wire Sizing</button>
+  <button type="button" role="tab" data-tab="ident" aria-selected="false">IDENT</button>
+  <button type="button" role="tab" data-tab="ohm" aria-selected="false">Ohm's Law</button>
+  <button type="button" role="tab" data-tab="batt" aria-selected="false">Battery</button>
+  <button type="button" role="tab" data-tab="gnss" aria-selected="false">GNSS</button>
+  <button type="button" role="tab" data-tab="rf" aria-selected="false">Radio / RF</button>
+</div></nav>
+<main>
+
+<!-- ============ WIRE ============ -->
+<section id="tab-wire" role="tabpanel" class="on">
+  <div class="card">
+    <h2>Spec 55 wire size</h2>
+    <div class="grid">
+      <div><label for="wCur">Current (A)</label><input id="wCur" type="number" inputmode="decimal" min="0" step="any" value="10"></div>
+      <div><label for="wLen">Length</label><div class="inrow"><input id="wLen" type="number" inputmode="decimal" min="0" step="any" value="3"><select id="wUnit" aria-label="Length unit"><option value="m" selected>m</option><option value="ft">ft</option></select></div></div>
+      <div><label for="wVolt">Voltage (V)</label><input id="wVolt" type="number" inputmode="decimal" min="0" step="any" value="14"></div>
+      <div><label for="wMax">Max drop (%)</label><input id="wMax" type="number" inputmode="decimal" min="0" step="any" value="5"></div>
+      <div><label for="wTemp">Conductor temp (°C)</label><input id="wTemp" type="number" inputmode="decimal" step="any" value="20"></div>
+      <div class="full"><label for="wCon">Type</label><select id="wCon"><option value="hookup" selected>Hookup 55A011X</option><option value="airframe">Airframe 55A081X</option></select></div>
+    </div>
+    <p class="note">Hookup (55A011X): lightweight single-wall 0.006", 12–30 AWG, for equipment/internal wiring.<br>Airframe (55A081X): dual-wall 0.010", 26–00 AWG, more robust for harnesses and larger sizes.</p>
+    <p class="note">Length is the total conductor length (supply + return); no automatic doubling.</p>
+    <div id="wRes" class="result"></div>
+  </div>
+  <div class="card"><h2>Nearby sizes</h2><div id="wTable"></div></div>
+  <div class="card"><h2>Notes</h2>
+    <p class="note" style="margin:0">R at temp = R20 × (1 + 0.00393 × (T − 20)). Drop = I × R × length. Spec 55 continuous rating –65 °C to 200 °C (silver/nickel) or 150 °C (tin). Voltage-drop targets: critical / electronics ≤ 3–5 %; general power or weight-sensitive high-load runs can accept 10–15 % (lost power is the trade-off). Ampacity is not calculated.</p>
+  </div>
+</section>
+
+<!-- ============ IDENT ============ -->
+<section id="tab-ident" role="tabpanel">
+  <div class="card">
+    <h2>Decode: tap colours in order</h2>
+    <p class="note" style="margin:0 0 10px">Closest to the connector first. Up to 3 colours (base, then stripes).</p>
+    <div class="palette" id="iPal"></div>
+    <div class="result">
+      <div class="chips first" id="iChips"></div>
+      <div class="big" id="iNum" style="margin-top:6px">–</div>
+      <div class="sub" id="iDesc"></div>
+      <button class="copy" type="button" data-copy="iNum">Copy</button>
+    </div>
+    <div class="btns"><button class="btn ghost" type="button" id="iUndo">Undo</button><button class="btn ghost" type="button" id="iClear">Clear</button></div>
+  </div>
+  <div class="card">
+    <h2>Encode: number → colours</h2>
+    <label for="iEnc">Number (1–3 digits)</label><input id="iEnc" inputmode="numeric" maxlength="3" value="92" autocomplete="off">
+    <div class="result"><div class="chips first" id="iEncChips"></div><div class="sub" id="iEncDesc"></div><button class="copy" type="button" data-copy="iEncDesc">Copy</button></div>
+  </div>
+  <div class="card">
+    <h2>MIL-STD-681 reference</h2>
+    <table id="iRef"><tr><th class="l">Digit</th><th class="l">Colour</th></tr></table>
+    <p class="note">2L Pink appears in TE's Spec 55 catalogue colour key; it is not a single tap digit. Example: 55A0111-22-9 = 22 AWG white; -90 = white with black stripe.</p>
+  </div>
+</section>
+
+<!-- ============ OHM ============ -->
+<section id="tab-ohm" role="tabpanel">
+  <div class="card">
+    <h2>Ohm's law: enter any two</h2>
+    <div class="grid">
+      <div><label for="oV">Voltage V (V)</label><input id="oV" type="number" inputmode="decimal" step="any" placeholder="V"></div>
+      <div><label for="oI">Current I (A)</label><input id="oI" type="number" inputmode="decimal" step="any" placeholder="A"></div>
+      <div><label for="oR">Resistance R (Ω)</label><input id="oR" type="number" inputmode="decimal" step="any" placeholder="Ω"></div>
+      <div><label for="oP">Power P (W)</label><input id="oP" type="number" inputmode="decimal" step="any" placeholder="W"></div>
+    </div>
+    <div class="result" id="oRes"><div class="big first" id="oBig">Enter two values</div><div class="sub" id="oSub"></div><button class="copy" type="button" data-copy="oBig">Copy</button></div>
+    <div class="btns"><button class="btn ghost" type="button" id="oClear">Clear</button></div>
+    <p class="note">The two most recently edited fields are the inputs; the other two are calculated (dashed). DC / resistive, values must be greater than 0.</p>
+  </div>
+</section>
+
+<!-- ============ BATTERY ============ -->
+<section id="tab-batt" role="tabpanel">
+  <div class="card">
+    <h2>Battery</h2>
+    <div class="grid">
+      <div><label for="bChem">Chemistry</label><select id="bChem"><option value="liion">Li-ion</option><option value="lfp">LiFePO4</option><option value="pb">Lead-acid</option><option value="nimh">NiMH</option><option value="custom">Custom</option></select></div>
+      <div><label for="bUse">Usable (%)</label><input id="bUse" type="number" inputmode="decimal" min="0" max="100" step="any" value="80"></div>
+      <div><label for="bV">Voltage (V)</label><input id="bV" type="number" inputmode="decimal" step="any" value="12.8"></div>
+      <div><label for="bAh">Capacity (Ah)</label><input id="bAh" type="number" inputmode="decimal" step="any" value="100"></div>
+      <div class="full"><label for="bKwh">Energy (kWh, nameplate)</label><input id="bKwh" type="number" inputmode="decimal" step="any"></div>
+    </div>
+    <div class="result" id="bERes"><div class="big first" id="bEBig"></div><dl class="kv" id="bEKv"></dl><button class="copy" type="button" data-copy="bEBig">Copy</button></div>
+    <p class="note">Edit Ah or kWh; the other follows at the given voltage. Default usable %: Li-ion 80, LiFePO4 90, Lead-acid 50, NiMH 80, Custom 100 (editable).</p>
+  </div>
+  <div class="card">
+    <h2>C-rate</h2>
+    <div class="grid">
+      <div><label for="cA">Current (A)</label><input id="cA" type="number" inputmode="decimal" step="any" value="50"></div>
+      <div><label for="cC">C-rate (C)</label><input id="cC" type="number" inputmode="decimal" step="any"></div>
+    </div>
+    <div class="result"><div class="big first" id="cBig"></div><div class="sub" id="cSub"></div><button class="copy" type="button" data-copy="cBig">Copy</button></div>
+    <p class="note">Uses the capacity above. Edit A or C; the other follows.</p>
+  </div>
+  <div class="card">
+    <h2>Series / parallel pack</h2>
+    <div class="grid">
+      <div><label for="pV">Cell voltage (V)</label><input id="pV" type="number" inputmode="decimal" step="any" value="3.6"></div>
+      <div><label for="pAh">Cell capacity (Ah)</label><input id="pAh" type="number" inputmode="decimal" step="any" value="3.0"></div>
+      <div><label for="pS">Series (S)</label><input id="pS" type="number" inputmode="numeric" min="1" step="1" value="4"></div>
+      <div><label for="pP">Parallel (P)</label><input id="pP" type="number" inputmode="numeric" min="1" step="1" value="3"></div>
+    </div>
+    <div class="result"><div class="big first" id="pBig"></div><dl class="kv" id="pKv"></dl><button class="copy" type="button" data-copy="pBig">Copy</button></div>
+    <div class="btns"><button class="btn ghost" type="button" id="pUse">Use pack above</button></div>
+  </div>
+  <div class="card">
+    <h2>Runtime</h2>
+    <div class="grid">
+      <div><label for="rLoad">Load</label><input id="rLoad" type="number" inputmode="decimal" step="any" value="60"></div>
+      <div><label for="rUnit">Unit</label><select id="rUnit"><option value="W">W</option><option value="A">A</option></select></div>
+    </div>
+    <div class="result"><div class="big first" id="rBig"></div><div class="sub" id="rSub"></div><button class="copy" type="button" data-copy="rBig">Copy</button></div>
+    <p class="note">Usable energy ÷ load, using the battery above. Ignores Peukert effect, temperature and ageing.</p>
+  </div>
+  <div class="card">
+    <h2>Charge time</h2>
+    <div class="grid">
+      <div><label for="gA">Charger current (A)</label><input id="gA" type="number" inputmode="decimal" step="any" value="20"></div>
+      <div><label for="gEff">Efficiency (%)</label><input id="gEff" type="number" inputmode="decimal" step="any" value="85"></div>
+    </div>
+    <div class="result"><div class="big first" id="gBig"></div><div class="sub" id="gSub"></div><button class="copy" type="button" data-copy="gBig">Copy</button></div>
+    <p class="note">Assumption: refilling the usable capacity at constant charger current, with 85 % charge efficiency by default (editable). Real chargers taper near full (CV phase), so allow extra time.</p>
+  </div>
+</section>
+
+<!-- ============ GNSS ============ -->
+<section id="tab-gnss" role="tabpanel">
+  <div class="card">
+    <h2>Distance and bearing</h2>
+    <div class="grid">
+      <div><label for="gLat1">Lat A (°)</label><input id="gLat1" type="number" inputmode="decimal" step="any" value="60.1699"></div>
+      <div><label for="gLon1">Lon A (°)</label><input id="gLon1" type="number" inputmode="decimal" step="any" value="24.9384"></div>
+      <div><label for="gLat2">Lat B (°)</label><input id="gLat2" type="number" inputmode="decimal" step="any" value="59.3293"></div>
+      <div><label for="gLon2">Lon B (°)</label><input id="gLon2" type="number" inputmode="decimal" step="any" value="18.0686"></div>
+    </div>
+    <div class="result" id="hRes"><div class="big first" id="hBig"></div><dl class="kv" id="hKv"></dl><button class="copy" type="button" data-copy="hBig">Copy</button></div>
+    <p class="note">Decimal degrees, north/east positive. Haversine on a sphere, R = 6371.0088 km (mean Earth radius); expect up to ~0.5 % versus ellipsoidal methods.</p>
+  </div>
+  <div class="card">
+    <h2>NMEA decoder (GGA / RMC)</h2>
+    <label for="nIn">Paste one or more sentences</label>
+    <textarea id="nIn" spellcheck="false" autocapitalize="off" autocomplete="off">$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
+$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A</textarea>
+    <div id="nOut"></div>
+    <p class="note">Any talker ($GP, $GN, $GL, $GA, $BD…). The checksum is verified when present.</p>
+  </div>
+</section>
+
+<!-- ============ RF ============ -->
+<section id="tab-rf" role="tabpanel">
+  <div class="card">
+    <h2>Wavelength and antenna</h2>
+    <div class="grid">
+      <div><label for="fF">Frequency</label><div class="inrow"><input id="fF" type="number" inputmode="decimal" step="any" value="100"><select id="fU" aria-label="Frequency unit"><option value="1e3">kHz</option><option value="1e6" selected>MHz</option><option value="1e9">GHz</option></select></div></div>
+      <div><label for="fVF">Velocity factor</label><input id="fVF" type="number" inputmode="decimal" step="any" min="0" max="1" value="1.0"></div>
+    </div>
+    <div class="result"><div class="big first" id="fBig"></div><dl class="kv" id="fKv"></dl><button class="copy" type="button" data-copy="fBig">Copy</button></div>
+    <p class="note">λ = c / f with c = 299 792 458 m/s. Velocity factor scales the antenna lengths only. Practical wire dipoles are cut about 0.95 × the free-space ½ λ (end effect); coax VF is typically 0.66–0.85.</p>
+  </div>
+  <div class="card">
+    <h2>Free-space path loss</h2>
+    <div class="grid">
+      <div><label for="lD" id="lDL">Distance (km)</label><input id="lD" type="number" inputmode="decimal" step="any" value="1"></div>
+      <div><label for="lF">Frequency (MHz)</label><input id="lF" type="number" inputmode="decimal" step="any" value="2400"></div>
+    </div>
+    <div class="result"><div class="big first" id="lBig"></div><div class="sub">FSPL = 20 log10(d km) + 20 log10(f MHz) + 32.45</div><button class="copy" type="button" data-copy="lBig">Copy</button></div>
+  </div>
+  <div class="card">
+    <h2>SWR</h2>
+    <label for="sS">SWR (≥ 1)</label><input id="sS" type="number" inputmode="decimal" step="any" min="1" value="2">
+    <div class="result"><div class="big first" id="sBig"></div><dl class="kv" id="sKv"></dl><button class="copy" type="button" data-copy="sBig">Copy</button></div>
+  </div>
+</section>
+</main>
+
+<script id="core">
+/* Pure calculations (no DOM); exposed as ET for testing. */
+var ET = (function () {
+  "use strict";
+  var LBKFT_TO_GM = 453.59237 / 304.8; // 1 lb/1000 ft = 1.488164 g/m
+  var FT = 0.3048;
+  var wire = {
+    ALPHA: 0.00393,
+    // [AWG, stranding, OD in, weight lb/1000 ft]
+    SPEC: {
+      hookup: [
+        ["30", "7×38", 0.024, 0.66], ["28", "7×38", 0.027, 0.91], ["26", "19×38", 0.032, 1.4],
+        ["24", "19×36", 0.037, 2.0], ["22", "19×34", 0.043, 2.8], ["20", "19×32", 0.050, 4.3],
+        ["18", "19×30", 0.060, 6.5], ["16", "19×29", 0.068, 8.3], ["14", "19×27", 0.085, 13.0],
+        ["12", "37×28", 0.103, 19.7]
+      ],
+      airframe: [
+        ["26", "19×38", 0.040, 1.7], ["24", "19×36", 0.045, 2.3], ["22", "19×34", 0.050, 3.2],
+        ["20", "19×32", 0.058, 4.7], ["18", "19×30", 0.070, 7.2], ["16", "19×29", 0.077, 9.0],
+        ["14", "19×27", 0.094, 13.8], ["12", "37×28", 0.111, 20.5], ["10", "37×26", 0.134, 32.4],
+        ["8", "133×29", 0.195, 60.3], ["6", "133×27", 0.241, 94.5], ["4", "133×25", 0.310, 150],
+        ["2", "665×30", 0.408, 239], ["1", "817×30", 0.470, 290], ["0", "1045×30", 0.510, 377],
+        ["00", "1330×30", 0.570, 487]
+      ]
+    },
+    R20: {
+      "30": 103.2, "28": 64.9, "26": 40.81, "24": 25.67, "22": 16.14, "20": 10.15, "18": 6.385,
+      "16": 4.015, "14": 2.525, "12": 1.588, "10": 0.9989, "8": 0.6282, "6": 0.3951, "4": 0.2485,
+      "2": 0.1563, "1": 0.1239, "0": 0.09827, "00": 0.07793
+    },
+    compute: function (I, L, unit, V, maxPct, T, con) {
+      var lenFt = unit === "ft" ? L : L / FT;
+      var factor = 1 + wire.ALPHA * (T - 20);
+      var rows = wire.SPEC[con].map(function (w) {
+        var rt = wire.R20[w[0]] * factor;
+        var vd = I * (rt / 1000) * lenFt; // total conductor length, no multiplier
+        var pct = vd / V * 100;
+        return { awg: w[0], strand: w[1], od: w[2], lb: w[3], gm: w[3] * LBKFT_TO_GM, rt: rt, vd: vd, pct: pct, ok: pct <= maxPct };
+      });
+      var pick = -1;
+      for (var i = 0; i < rows.length; i++) { if (rows[i].ok) { pick = i; break; } }
+      return { rows: rows, pick: pick, lenM: lenFt * FT };
+    }
+  };
+
+  var ident = {
+    COLORS: [
+      { d: "0", name: "Black", hex: "#000000", fg: "#fff" }, { d: "1", name: "Brown", hex: "#7b4a1e", fg: "#fff" },
+      { d: "2", name: "Red", hex: "#d62828", fg: "#fff" }, { d: "3", name: "Orange", hex: "#f28c28", fg: "#111" },
+      { d: "4", name: "Yellow", hex: "#f5d90a", fg: "#111" }, { d: "5", name: "Green", hex: "#2e9e44", fg: "#fff" },
+      { d: "6", name: "Blue", hex: "#2f6fdb", fg: "#fff" }, { d: "7", name: "Violet", hex: "#8a4fd1", fg: "#fff" },
+      { d: "8", name: "Grey", hex: "#8c8c8c", fg: "#111" }, { d: "9", name: "White", hex: "#f3f3f3", fg: "#111" }
+    ],
+    decode: function (digits) { // array of digit strings -> number string
+      return digits.join("");
+    },
+    encode: function (s) { // "92" -> [colour objects]; throws on invalid
+      s = String(s).trim();
+      if (!/^[0-9]{1,3}$/.test(s)) throw new Error("Enter 1 to 3 digits (0–9)");
+      return s.split("").map(function (c) { return ident.COLORS[+c]; });
+    },
+    describe: function (cols) {
+      if (!cols.length) return "";
+      var t = cols[0].name;
+      if (cols.length > 1) t += " with " + cols.slice(1).map(function (c) { return c.name.toLowerCase(); }).join(" and ") + (cols.length > 2 ? " stripes" : " stripe");
+      return t;
+    }
+  };
+
+  var ohm = {
+    // given: object with exactly two of V, I, R, P (numbers > 0) -> {V,I,R,P}
+    solve: function (g) {
+      var k = Object.keys(g).sort().join("");
+      for (var key in g) { if (!(isFinite(g[key]) && g[key] > 0)) throw new Error("Values must be greater than 0"); }
+      var V = g.V, I = g.I, R = g.R, P = g.P;
+      switch (k) {
+        case "IV": R = V / I; P = V * I; break;
+        case "RV": I = V / R; P = V * V / R; break;
+        case "PV": I = P / V; R = V * V / P; break;
+        case "IR": V = I * R; P = I * I * R; break;
+        case "IP": V = P / I; R = P / (I * I); break;
+        case "PR": V = Math.sqrt(P * R); I = Math.sqrt(P / R); break;
+        default: throw new Error("Enter exactly two values");
+      }
+      return { V: V, I: I, R: R, P: P };
+    }
+  };
+
+  var batt = {
+    USABLE: { liion: 80, lfp: 90, pb: 50, nimh: 80, custom: 100 },
+    energy: function (V, Ah, usePct) { var wh = V * Ah; return { wh: wh, kwh: wh / 1000, usableWh: wh * usePct / 100, usableAh: Ah * usePct / 100 }; },
+    ahFromKwh: function (kwh, V) { return kwh * 1000 / V; },
+    cFromA: function (A, Ah) { return A / Ah; },
+    aFromC: function (C, Ah) { return C * Ah; },
+    pack: function (cellV, cellAh, S, P) { var v = cellV * S, ah = cellAh * P; return { V: v, Ah: ah, Wh: v * ah, cells: S * P }; },
+    runtimeH: function (usableWh, usableAh, load, unit) { return unit === "W" ? usableWh / load : usableAh / load; },
+    chargeH: function (ahToCharge, chargerA, effPct) { return ahToCharge / (chargerA * effPct / 100); }
+  };
+
+  var gnss = {
+    R_KM: 6371.0088,
+    rad: function (d) { return d * Math.PI / 180; },
+    haversine: function (la1, lo1, la2, lo2) {
+      var p1 = gnss.rad(la1), p2 = gnss.rad(la2), dp = p2 - p1, dl = gnss.rad(lo2 - lo1);
+      var a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+      return 2 * gnss.R_KM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    },
+    bearing: function (la1, lo1, la2, lo2) {
+      var p1 = gnss.rad(la1), p2 = gnss.rad(la2), dl = gnss.rad(lo2 - lo1);
+      var y = Math.sin(dl) * Math.cos(p2), x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+      return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    },
+    compass: function (b) { return ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"][Math.round(b / 22.5) % 16]; },
+    FIX: { "0": "Invalid / no fix", "1": "GPS fix (SPS)", "2": "DGPS fix", "3": "PPS fix", "4": "RTK fixed", "5": "RTK float", "6": "Estimated (dead reckoning)", "7": "Manual input", "8": "Simulation" },
+    coord: function (v, hemi, degDigits) {
+      if (!v) return null;
+      var d = parseInt(v.slice(0, degDigits), 10), m = parseFloat(v.slice(degDigits));
+      if (!isFinite(d) || !isFinite(m)) return null;
+      var x = d + m / 60;
+      return (hemi === "S" || hemi === "W") ? -x : x;
+    },
+    time: function (t) { return t && t.length >= 6 ? t.slice(0, 2) + ":" + t.slice(2, 4) + ":" + t.slice(4) + " UTC" : null; },
+    parse: function (line) {
+      var s = line.trim();
+      if (!s) return null;
+      var out = { raw: s };
+      var m = /^[$!]([^*]*)(?:\*([0-9A-Fa-f]{2}))?\s*$/.exec(s);
+      if (!m) { out.error = "Not an NMEA sentence (must start with $ and may end with *hh)"; return out; }
+      var body = m[1], cs = 0;
+      for (var i = 0; i < body.length; i++) cs ^= body.charCodeAt(i);
+      out.checksumCalc = ("0" + cs.toString(16).toUpperCase()).slice(-2);
+      if (m[2]) { out.checksumGiven = m[2].toUpperCase(); out.checksumOk = out.checksumGiven === out.checksumCalc; }
+      else out.checksumOk = null;
+      var f = body.split(",");
+      var addr = f[0];
+      if (addr.length < 5) { out.error = "Bad address field"; return out; }
+      out.talker = addr.slice(0, addr.length - 3); out.type = addr.slice(-3);
+      if (out.type === "GGA") {
+        out.time = gnss.time(f[1]);
+        out.lat = gnss.coord(f[2], f[3], 2); out.lon = gnss.coord(f[4], f[5], 3);
+        out.quality = f[6]; out.qualityText = gnss.FIX[f[6]] || ("Unknown (" + f[6] + ")");
+        out.sats = f[7] === "" || f[7] === undefined ? null : parseInt(f[7], 10);
+        out.hdop = f[8] ? parseFloat(f[8]) : null;
+        out.alt = f[9] ? parseFloat(f[9]) : null; out.altUnit = f[10] || "M";
+        out.geoidSep = f[11] ? parseFloat(f[11]) : null;
+      } else if (out.type === "RMC") {
+        out.time = gnss.time(f[1]);
+        out.status = f[2]; out.statusText = f[2] === "A" ? "Valid (A)" : f[2] === "V" ? "Void / warning (V)" : f[2];
+        out.lat = gnss.coord(f[3], f[4], 2); out.lon = gnss.coord(f[5], f[6], 3);
+        out.speedKn = f[7] ? parseFloat(f[7]) : null;
+        out.speedKmh = out.speedKn === null ? null : out.speedKn * 1.852;
+        out.course = f[8] ? parseFloat(f[8]) : null;
+        var d = f[9];
+        if (d && d.length === 6) { var yy = +d.slice(4, 6); out.date = (yy < 80 ? 2000 + yy : 1900 + yy) + "-" + d.slice(2, 4) + "-" + d.slice(0, 2); }
+        out.magVar = f[10] ? f[10] + "° " + (f[11] || "") : null;
+        out.mode = f[12] || null;
+      } else {
+        out.error = "Sentence type " + out.type + " not supported (GGA and RMC only)";
+      }
+      return out;
+    }
+  };
+
+  var rf = {
+    C: 299792458,
+    wavelength: function (fHz) { return rf.C / fHz; },
+    FSPL_K: 20 * Math.log10(4 * Math.PI * 1e9 / 299792458), // 32.4478 dB for km and MHz
+    fspl: function (dKm, fMHz) { return 20 * Math.log10(dKm) + 20 * Math.log10(fMHz) + rf.FSPL_K; },
+    swr: function (s) {
+      var g = (s - 1) / (s + 1);
+      return { gamma: g, rl: g === 0 ? Infinity : -20 * Math.log10(g), reflPct: g * g * 100, mismatch: -10 * Math.log10(1 - g * g) };
+    }
+  };
+
+  return { wire: wire, ident: ident, ohm: ohm, batt: batt, gnss: gnss, rf: rf, FT: FT };
+})();
+if (typeof module !== "undefined") module.exports = ET;
+</script>
+
+<script id="ui">
+(function () {
+  "use strict";
+  function $(id) { return document.getElementById(id); }
+  function num(id) { var v = $(id).value; return v === "" ? NaN : parseFloat(v); }
+  function fmt(x, d) { return isFinite(x) ? x.toFixed(d) : "–"; }
+  function sig(x, n) { // smart formatting
+    if (!isFinite(x)) return "–";
+    var a = Math.abs(x);
+    if (a === 0) return "0";
+    if (a >= 1e6 || a < 1e-3) return x.toExponential(n - 1);
+    var d = Math.max(0, n - 1 - Math.floor(Math.log10(a)));
+    return x.toFixed(Math.min(d, 6));
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function kv(el, pairs) { el.innerHTML = pairs.map(function (p) { return "<dt>" + esc(p[0]) + "</dt><dd>" + esc(p[1]) + "</dd>"; }).join(""); }
+  function hm(h) { if (!isFinite(h) || h < 0) return "–"; var t = Math.round(h * 60); return Math.floor(t / 60) + " h " + ("0" + (t % 60)).slice(-2) + " min"; }
+
+  /* ---------- units ---------- */
+  var imperial = false;
+  try { imperial = localStorage.getItem("et-units") === "imperial"; } catch (e) {}
+  function setUnits(imp) {
+    imperial = imp;
+    try { localStorage.setItem("et-units", imp ? "imperial" : "metric"); } catch (e) {}
+    $("uMetric").classList.toggle("on", !imp); $("uImperial").classList.toggle("on", imp);
+    $("uMetric").setAttribute("aria-pressed", String(!imp)); $("uImperial").setAttribute("aria-pressed", String(imp));
+    var wu = $("wUnit");
+    if (wu.value !== (imp ? "ft" : "m")) {
+      var L = num("wLen");
+      if (isFinite(L)) $("wLen").value = +(imp ? L / ET.FT : L * ET.FT).toFixed(2);
+      wu.value = imp ? "ft" : "m";
+    }
+    var lD = num("lD"), wasImp = $("lDL").textContent.indexOf("mi") >= 0;
+    if (wasImp !== imp && isFinite(lD)) $("lD").value = +(imp ? lD / 1.609344 : lD * 1.609344).toFixed(4);
+    $("lDL").textContent = imp ? "Distance (mi)" : "Distance (km)";
+    all();
+  }
+  $("uMetric").onclick = function () { setUnits(false); };
+  $("uImperial").onclick = function () { setUnits(true); };
+
+  /* ---------- tabs ---------- */
+  var tabs = [].slice.call(document.querySelectorAll("[role=tab]"));
+  function show(name) {
+    tabs.forEach(function (t) {
+      var on = t.dataset.tab === name;
+      t.setAttribute("aria-selected", String(on));
+      $("tab-" + t.dataset.tab).classList.toggle("on", on);
+      if (on && t.scrollIntoView) t.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+    try { localStorage.setItem("et-tab", name); } catch (e) {}
+    if (location.hash !== "#" + name && history.replaceState) history.replaceState(null, "", "#" + name);
+  }
+  tabs.forEach(function (t) { t.onclick = function () { show(t.dataset.tab); }; });
+
+  /* ---------- copy ---------- */
+  function copyText(text, btn) {
+    function done(ok) { var o = btn.textContent; btn.textContent = ok ? "Copied" : "Failed"; setTimeout(function () { btn.textContent = o; }, 1200); }
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta); done(ok);
+    }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+    else fallback();
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-copy]");
+    if (!b) return;
+    var box = b.closest(".result") || $(b.dataset.copy);
+    var clone = box.cloneNode(true);
+    [].forEach.call(clone.querySelectorAll("button"), function (x) { x.remove(); });
+    [].forEach.call(clone.querySelectorAll("dt"), function (x) { x.textContent += ": "; });
+    [].forEach.call(clone.querySelectorAll("dd, div, .chip"), function (x) { x.insertAdjacentText("afterend", "\n"); });
+    copyText(clone.textContent.replace(/\n\s*\n+/g, "\n").trim(), b);
+  });
+
+  /* ---------- wire ---------- */
+  function wireCalc() {
+    var I = num("wCur"), L = num("wLen"), V = num("wVolt"), mx = num("wMax"), T = num("wTemp");
+    var con = $("wCon").value, res = $("wRes"), tbl = $("wTable");
+    if (!(I >= 0) || !(L >= 0) || !(V > 0) || !(mx > 0) || !isFinite(T)) {
+      res.className = "result bad";
+      res.innerHTML = '<div class="first">Enter current, length, a voltage above 0, a max drop above 0 and a temperature.</div>';
+      tbl.innerHTML = ""; return;
+    }
+    var c = ET.wire.compute(I, L, $("wUnit").value, V, mx, T, con);
+    var rows = c.rows, pick = c.pick, typeName = con === "hookup" ? "Hookup 55A011X" : "Airframe 55A081X";
+    function wt(g) { return g >= 1000 ? fmt(g / 1000, 2) + " kg" : fmt(g, g < 100 ? 1 : 0) + " g"; }
+    function mv(v) { return String(Math.round(v * 1000)); }
+    var r = pick >= 0 ? rows[pick] : rows[rows.length - 1];
+    var lines = '<div class="big" id="wBig">' + r.awg + " AWG</div>" +
+      '<div class="sub">' + typeName + " · " + r.strand + "</div>" +
+      '<dl class="kv" style="margin-top:8px"><dt>Voltage drop</dt><dd>' + mv(r.vd) + " mV (" + fmt(r.pct, 2) + " %)</dd>" +
+      "<dt>Total weight</dt><dd>" + wt(r.gm * c.lenM) + " (" + fmt(r.gm, r.gm < 10 ? 2 : 1) + " g/m)</dd></dl>";
+    if (pick >= 0) {
+      res.className = "result ok";
+      res.innerHTML = lines + '<button class="copy" type="button" data-copy="wBig">Copy</button>';
+    } else {
+      res.className = "result bad";
+      res.innerHTML = '<div class="first err" style="font-weight:700">No ' + typeName + " size meets " + fmt(mx, 2) + " %. Largest:</div>" + lines +
+        '<div class="note">' + (con === "hookup" ? "Try Airframe, a shorter run or a higher voltage." : "Shorten the run, raise the voltage or run conductors in parallel.") + "</div>" +
+        '<button class="copy" type="button" data-copy="wBig">Copy</button>';
+    }
+    var center = pick >= 0 ? pick : rows.length - 1;
+    var lo = Math.max(0, center - 2), hi = Math.min(rows.length - 1, center + 2);
+    var h = '<table><tr><th class="l"></th><th>AWG</th><th>Strand</th><th>mV</th><th>%</th><th>g/m</th></tr>';
+    for (var k = lo; k <= hi; k++) {
+      var w = rows[k];
+      h += "<tr" + (k === pick ? ' class="pick"' : "") + '><td class="l ' + (w.ok ? "pass" : "fail") + '">' + (w.ok ? "✓" : "✗") + "</td><td>" + w.awg + "</td><td>" + w.strand +
+        "</td><td>" + mv(w.vd) + "</td><td>" + fmt(w.pct, 2) + "</td><td>" + fmt(w.gm, w.gm < 10 ? 2 : 1) + "</td></tr>";
+    }
+    tbl.innerHTML = h + "</table>";
+  }
+  ["wCur", "wLen", "wUnit", "wVolt", "wMax", "wTemp", "wCon"].forEach(function (id) { $(id).addEventListener("input", wireCalc); $(id).addEventListener("change", wireCalc); });
+  $("wUnit").addEventListener("change", function () {
+    var L = num("wLen"); // convert value when the unit is switched by hand
+    if (isFinite(L)) $("wLen").value = +($("wUnit").value === "ft" ? L / ET.FT : L * ET.FT).toFixed(2);
+    wireCalc();
+  });
+
+  /* ---------- IDENT ---------- */
+  var seq = [];
+  function chipHtml(c) { return '<span class="chip"><span class="sw" style="background:' + c.hex + '"></span>' + c.d + " " + c.name + "</span>"; }
+  var pal = $("iPal");
+  ET.ident.COLORS.forEach(function (c) {
+    var b = document.createElement("button");
+    b.type = "button"; b.style.background = c.hex; b.style.color = c.fg; b.setAttribute("aria-label", c.name + " " + c.d);
+    b.innerHTML = c.d + "<small>" + c.name + "</small>";
+    b.onclick = function () { if (seq.length < 3) { seq.push(c); identDraw(); } };
+    pal.appendChild(b);
+  });
+  function identDraw() {
+    $("iChips").innerHTML = seq.length ? seq.map(chipHtml).join("") : '<span class="sub">Tap up to 3 colours</span>';
+    $("iNum").textContent = seq.length ? ET.ident.decode(seq.map(function (c) { return c.d; })) : "–";
+    $("iDesc").textContent = seq.length ? ET.ident.describe(seq) + (seq.length === 3 ? " (max 3)" : "") : "";
+  }
+  $("iUndo").onclick = function () { seq.pop(); identDraw(); };
+  $("iClear").onclick = function () { seq = []; identDraw(); };
+  function identEnc() {
+    try {
+      var cols = ET.ident.encode($("iEnc").value);
+      $("iEncChips").innerHTML = cols.map(chipHtml).join("");
+      $("iEncDesc").textContent = cols.map(function (c) { return c.name; }).join(" → ") + " (" + ET.ident.describe(cols) + ")";
+      $("iEncDesc").className = "sub";
+    } catch (e) { $("iEncChips").innerHTML = ""; $("iEncDesc").textContent = e.message; $("iEncDesc").className = "sub err"; }
+  }
+  $("iEnc").addEventListener("input", identEnc);
+  $("iRef").innerHTML += ET.ident.COLORS.map(function (c) { return '<tr><td class="l">' + c.d + '</td><td class="l"><span class="sw s" style="background:' + c.hex + '"></span>' + c.name + "</td></tr>"; }).join("") +
+    '<tr><td class="l">2L</td><td class="l"><span class="sw s" style="background:#f4a6c6"></span>Pink (Spec 55 catalogue)</td></tr>';
+
+  /* ---------- Ohm ---------- */
+  var OF = { V: "oV", I: "oI", R: "oR", P: "oP" }, UNIT = { V: "V", I: "A", R: "Ω", P: "W" }, order = [];
+  function ohmCalc() {
+    var g = {};
+    order.forEach(function (k) { g[k] = num(OF[k]); });
+    Object.keys(OF).forEach(function (k) { $(OF[k]).classList.toggle("calc", order.indexOf(k) < 0 && $(OF[k]).value !== ""); });
+    var res = $("oRes");
+    if (order.length < 2) { res.className = "result"; $("oBig").textContent = "Enter two values"; $("oSub").textContent = ""; return; }
+    try {
+      var s = ET.ohm.solve(g);
+      Object.keys(OF).forEach(function (k) { if (order.indexOf(k) < 0) { $(OF[k]).value = +sig(s[k], 6); $(OF[k]).classList.add("calc"); } });
+      res.className = "result ok";
+      $("oBig").textContent = Object.keys(OF).map(function (k) { return k + " = " + sig(s[k], 4) + " " + UNIT[k]; }).join("  ");
+      $("oSub").textContent = "From " + order.join(" and ") + ".";
+    } catch (e) {
+      res.className = "result bad"; $("oBig").textContent = e.message; $("oSub").textContent = "";
+      Object.keys(OF).forEach(function (k) { if (order.indexOf(k) < 0) { $(OF[k]).value = ""; $(OF[k]).classList.remove("calc"); } });
+    }
+  }
+  Object.keys(OF).forEach(function (k) {
+    $(OF[k]).addEventListener("input", function () {
+      order = order.filter(function (x) { return x !== k; });
+      if ($(OF[k]).value !== "") order.push(k);
+      if (order.length > 2) order = order.slice(-2);
+      ohmCalc();
+    });
+  });
+  $("oClear").onclick = function () { order = []; Object.keys(OF).forEach(function (k) { $(OF[k]).value = ""; }); ohmCalc(); };
+
+  /* ---------- Battery ---------- */
+  var bLast = "Ah";
+  $("bChem").addEventListener("change", function () { $("bUse").value = ET.batt.USABLE[$("bChem").value]; battCalc(); });
+  $("bAh").addEventListener("input", function () { bLast = "Ah"; battCalc(); });
+  $("bKwh").addEventListener("input", function () { bLast = "kWh"; battCalc(); });
+  ["bUse", "bV"].forEach(function (id) { $(id).addEventListener("input", battCalc); });
+  var cLast = "A";
+  $("cA").addEventListener("input", function () { cLast = "A"; battCalc(); });
+  $("cC").addEventListener("input", function () { cLast = "C"; battCalc(); });
+  ["pV", "pAh", "pS", "pP", "rLoad", "rUnit", "gA", "gEff"].forEach(function (id) { $(id).addEventListener("input", battCalc); $(id).addEventListener("change", battCalc); });
+  $("pUse").onclick = function () {
+    var p = ET.batt.pack(num("pV"), num("pAh"), num("pS"), num("pP"));
+    if (isFinite(p.V) && isFinite(p.Ah)) { $("bV").value = +p.V.toFixed(3); $("bAh").value = +p.Ah.toFixed(3); bLast = "Ah"; battCalc(); }
+  };
+  function battCalc() {
+    var V = num("bV"), u = num("bUse"), Ah;
+    var okU = u > 0 && u <= 100;
+    if (bLast === "kWh") { Ah = V > 0 && num("bKwh") > 0 ? ET.batt.ahFromKwh(num("bKwh"), V) : NaN; if (isFinite(Ah)) $("bAh").value = +Ah.toFixed(3); }
+    else { Ah = num("bAh"); }
+    var e = V > 0 && Ah > 0 && okU ? ET.batt.energy(V, Ah, u) : null;
+    if (bLast === "Ah") $("bKwh").value = e ? +e.kwh.toFixed(4) : "";
+    $("bERes").className = "result" + (e ? " ok" : " bad");
+    if (e) {
+      $("bEBig").textContent = fmt(e.kwh, 3) + " kWh · " + fmt(e.usableWh / 1000, 3) + " kWh usable";
+      kv($("bEKv"), [["Nameplate", sig(e.wh, 5) + " Wh"], ["Usable (" + u + " %)", sig(e.usableWh, 5) + " Wh"], ["Capacity", sig(Ah, 5) + " Ah"], ["Usable capacity", sig(e.usableAh, 5) + " Ah"]]);
+    } else { $("bEBig").textContent = okU ? "Enter V > 0 and Ah or kWh > 0" : "Usable % must be 1–100"; kv($("bEKv"), []); }
+    // C-rate
+    if (Ah > 0) {
+      if (cLast === "A") { var C = ET.batt.cFromA(num("cA"), Ah); $("cC").value = isFinite(C) ? +C.toFixed(4) : ""; }
+      else { var A = ET.batt.aFromC(num("cC"), Ah); $("cA").value = isFinite(A) ? +A.toFixed(3) : ""; }
+      var cc = num("cC"), aa = num("cA");
+      $("cBig").textContent = cc > 0 ? sig(aa, 4) + " A = " + sig(cc, 3) + " C" : "Enter A or C > 0";
+      $("cSub").textContent = cc > 0 ? "Full capacity at this rate: " + hm(1 / cc) + " (" + sig(Ah, 4) + " Ah)" : "";
+    } else { $("cBig").textContent = "Set a capacity above"; $("cSub").textContent = ""; }
+    // pack
+    var S = num("pS"), P = num("pP");
+    if (num("pV") > 0 && num("pAh") > 0 && S >= 1 && P >= 1 && S % 1 === 0 && P % 1 === 0) {
+      var p = ET.batt.pack(num("pV"), num("pAh"), S, P);
+      $("pBig").textContent = S + "S" + P + "P · " + sig(p.V, 4) + " V · " + sig(p.Ah, 4) + " Ah";
+      kv($("pKv"), [["Energy", sig(p.Wh, 5) + " Wh"], ["Usable (" + (okU ? u : "–") + " %)", okU ? sig(p.Wh * u / 100, 5) + " Wh" : "–"], ["Cells", String(p.cells)]]);
+    } else { $("pBig").textContent = "Cell V, Ah > 0; S, P whole numbers ≥ 1"; kv($("pKv"), []); }
+    // runtime
+    var load = num("rLoad"), ru = $("rUnit").value;
+    if (e && load > 0) {
+      var h = ET.batt.runtimeH(e.usableWh, e.usableAh, load, ru);
+      $("rBig").textContent = hm(h);
+      $("rSub").textContent = sig(h, 4) + " h at " + sig(load, 4) + " " + ru + " from " + (ru === "W" ? sig(e.usableWh, 5) + " Wh" : sig(e.usableAh, 5) + " Ah") + " usable" + (ru === "W" ? " (≈ " + sig(load / V, 4) + " A at " + V + " V)" : "");
+    } else { $("rBig").textContent = "Enter a load > 0"; $("rSub").textContent = ""; }
+    // charge
+    var gA = num("gA"), eff = num("gEff");
+    if (e && gA > 0 && eff > 0 && eff <= 100) {
+      var ch = ET.batt.chargeH(e.usableAh, gA, eff);
+      $("gBig").textContent = hm(ch);
+      $("gSub").textContent = sig(e.usableAh, 5) + " Ah ÷ (" + sig(gA, 4) + " A × " + eff + " %) = " + sig(ch, 4) + " h; charge rate " + sig(gA / Ah, 3) + " C";
+    } else { $("gBig").textContent = "Charger A > 0, efficiency 1–100 %"; $("gSub").textContent = ""; }
+  }
+
+  /* ---------- GNSS ---------- */
+  function hav() {
+    var a = [num("gLat1"), num("gLon1"), num("gLat2"), num("gLon2")];
+    var bad = !a.every(isFinite) || Math.abs(a[0]) > 90 || Math.abs(a[2]) > 90 || Math.abs(a[1]) > 180 || Math.abs(a[3]) > 180;
+    if (bad) { $("hRes").className = "result bad"; $("hBig").textContent = "Lat −90…90, lon −180…180"; kv($("hKv"), []); return; }
+    var km = ET.gnss.haversine(a[0], a[1], a[2], a[3]), b = ET.gnss.bearing(a[0], a[1], a[2], a[3]);
+    var mi = km / 1.609344, nmi = km / 1.852;
+    $("hRes").className = "result ok";
+    $("hBig").textContent = (imperial ? sig(mi, 5) + " mi" : sig(km, 5) + " km") + " · " + fmt(b, 1) + "° " + ET.gnss.compass(b);
+    kv($("hKv"), [["Kilometres", fmt(km, 3) + " km"], ["Statute miles", fmt(mi, 3) + " mi"], ["Nautical miles", fmt(nmi, 3) + " nmi"], ["Initial bearing", fmt(b, 2) + "° (" + ET.gnss.compass(b) + ")"]]);
+  }
+  ["gLat1", "gLon1", "gLat2", "gLon2"].forEach(function (id) { $(id).addEventListener("input", hav); });
+  function nmea() {
+    var out = $("nIn").value.split(/\r?\n/).map(ET.gnss.parse).filter(Boolean);
+    if (!out.length) { $("nOut").innerHTML = '<div class="result"><div class="sub">Paste a $..GGA or $..RMC sentence.</div></div>'; return; }
+    $("nOut").innerHTML = out.map(function (o, i) {
+      var pairs = [], cls = "result", head;
+      if (o.error && !o.type) { return '<div class="result bad"><div class="first err">' + esc(o.error) + '</div><div class="sub" style="word-break:break-all">' + esc(o.raw) + "</div></div>"; }
+      head = esc((o.talker || "") + o.type);
+      if (o.checksumOk === true) pairs.push(["Checksum", "OK (" + o.checksumCalc + ")"]);
+      else if (o.checksumOk === false) { pairs.push(["Checksum", "BAD: got " + o.checksumGiven + ", expected " + o.checksumCalc]); cls = "result bad"; }
+      else pairs.push(["Checksum", "none (expected *" + o.checksumCalc + ")"]);
+      if (o.error) { pairs.push(["Note", o.error]); }
+      var big = "";
+      if (o.type === "GGA" || o.type === "RMC") {
+        if (o.lat !== null && o.lon !== null) big = fmt(o.lat, 6) + ", " + fmt(o.lon, 6);
+        else big = "No position";
+        if (o.time) pairs.push(["Time", o.time]);
+        if (o.date) pairs.push(["Date", o.date]);
+        if (o.type === "GGA") {
+          pairs.push(["Fix quality", o.quality + " – " + o.qualityText]);
+          pairs.push(["Satellites", o.sats === null ? "–" : String(o.sats)]);
+          pairs.push(["HDOP", o.hdop === null ? "–" : String(o.hdop)]);
+          pairs.push(["Altitude (MSL)", o.alt === null ? "–" : o.alt + " " + o.altUnit.toLowerCase() + (imperial ? " (" + fmt(o.alt / ET.FT, 0) + " ft)" : "")]);
+          if (o.geoidSep !== null) pairs.push(["Geoid separation", o.geoidSep + " m"]);
+          if (o.quality === "0") cls = "result bad"; else if (cls === "result") cls = "result ok";
+        } else {
+          pairs.push(["Status", o.statusText]);
+          pairs.push(["Speed", o.speedKn === null ? "–" : fmt(o.speedKn, 1) + " kn · " + fmt(o.speedKmh, 1) + " km/h" + (imperial ? " · " + fmt(o.speedKn * 1.150779, 1) + " mph" : "")]);
+          pairs.push(["Course", o.course === null ? "–" : fmt(o.course, 1) + "° true"]);
+          if (o.magVar) pairs.push(["Mag. variation", o.magVar]);
+          if (o.mode) pairs.push(["Mode", o.mode]);
+          if (o.status !== "A") cls = "result bad"; else if (cls === "result") cls = "result ok";
+        }
+      }
+      var id = "nBig" + i;
+      return '<div class="' + cls + '"><div class="sub first">' + head + '</div><div class="big" id="' + id + '" style="font-size:1.25rem">' + esc(big) + "</div>" +
+        '<dl class="kv">' + pairs.map(function (p) { return "<dt>" + esc(p[0]) + "</dt><dd>" + esc(p[1]) + "</dd>"; }).join("") + "</dl>" +
+        (big && big !== "No position" ? '<button class="copy" type="button" data-copy="' + id + '">Copy</button>' : "") + "</div>";
+    }).join("");
+  }
+  $("nIn").addEventListener("input", nmea);
+
+  /* ---------- RF ---------- */
+  function len(m) { return imperial ? sig(m / ET.FT, 4) + " ft" : (m < 1 ? sig(m * 100, 4) + " cm" : sig(m, 4) + " m"); }
+  function lenBoth(m) { return sig(m, 4) + " m · " + sig(m / ET.FT, 4) + " ft"; }
+  function rfCalc() {
+    var f = num("fF") * parseFloat($("fU").value), vf = num("fVF");
+    if (f > 0 && vf > 0 && vf <= 1) {
+      var lam = ET.rf.wavelength(f);
+      $("fBig").textContent = "λ = " + len(lam);
+      kv($("fKv"), [["Wavelength", lenBoth(lam)], ["¼ wave × VF " + vf, lenBoth(lam / 4 * vf)], ["½ wave × VF " + vf, lenBoth(lam / 2 * vf)], ["½ wave dipole × 0.95", lenBoth(lam / 2 * 0.95)]]);
+    } else { $("fBig").textContent = "f > 0, VF 0–1"; kv($("fKv"), []); }
+    var d = num("lD"), fm = num("lF");
+    var dKm = imperial ? d * 1.609344 : d;
+    $("lBig").textContent = d > 0 && fm > 0 ? fmt(ET.rf.fspl(dKm, fm), 2) + " dB" : "d > 0, f > 0";
+    var s = num("sS");
+    if (s >= 1) {
+      var r = ET.rf.swr(s);
+      $("sBig").textContent = "RL " + (isFinite(r.rl) ? fmt(r.rl, 2) + " dB" : "∞ (perfect match)") + " · " + fmt(r.reflPct, 2) + " % reflected";
+      kv($("sKv"), [["Reflection coefficient |Γ|", fmt(r.gamma, 4)], ["Return loss", isFinite(r.rl) ? fmt(r.rl, 2) + " dB" : "∞"], ["Reflected power", fmt(r.reflPct, 2) + " %"], ["Delivered power", fmt(100 - r.reflPct, 2) + " %"], ["Mismatch loss", fmt(r.mismatch, 3) + " dB"]]);
+    } else { $("sBig").textContent = "SWR must be ≥ 1"; kv($("sKv"), []); }
+  }
+  ["fF", "fU", "fVF", "lD", "lF", "sS"].forEach(function (id) { $(id).addEventListener("input", rfCalc); $(id).addEventListener("change", rfCalc); });
+
+  function all() { wireCalc(); identDraw(); identEnc(); ohmCalc(); battCalc(); hav(); nmea(); rfCalc(); }
+  all();
+  if (imperial) setUnits(true);
+  var start = (location.hash || "").slice(1);
+  if (!document.getElementById("tab-" + start)) { try { start = localStorage.getItem("et-tab") || "wire"; } catch (e) { start = "wire"; } }
+  if (!document.getElementById("tab-" + start)) start = "wire";
+  show(start);
+})();
+</script>
+</body>
+</html>
