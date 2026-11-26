@@ -67,6 +67,17 @@ td.l,th.l{text-align:left}
 .err{color:var(--bad)}
 .warn{color:var(--warn)}
 @media (max-width:360px){.grid3{grid-template-columns:1fr 1fr}}
+
+.tabgrp{flex:none;align-self:center;color:var(--muted);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;padding:0 4px 0 8px;white-space:nowrap}
+.tabsep{flex:none;width:1px;align-self:stretch;background:var(--line);margin:6px 6px}
+.list{display:flex;flex-direction:column;gap:6px}
+.list button{width:100%;text-align:left;background:#10102a;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:48px;font:inherit;cursor:pointer;white-space:normal;overflow-wrap:anywhere}
+.list button:hover,.list button.on{border-color:var(--acc)}
+.list button .meta{display:block;color:var(--muted);font-size:.8rem;font-weight:400}
+.badge{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--acc);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.chk{display:flex;align-items:flex-start;gap:10px;min-height:44px;margin-top:8px;color:var(--muted);font-size:.9rem;line-height:1.35}
+.chk input{width:22px;height:22px;min-height:22px;margin-top:4px;accent-color:var(--acc);flex:none}
+#potUses,#potNotes{min-height:72px;font:inherit;font-size:.95rem}
 </style>
 </head>
 <body>
@@ -75,12 +86,21 @@ td.l,th.l{text-align:left}
   <div class="units" role="group" aria-label="Units"><button type="button" id="uMetric" class="on">Metric</button><button type="button" id="uImperial">Imperial</button></div>
 </header>
 <nav><div class="tabs" role="tablist">
+  <span class="tabgrp">Electrical</span>
   <button type="button" role="tab" data-tab="wire" aria-selected="true">Wire Sizing</button>
   <button type="button" role="tab" data-tab="ident" aria-selected="false">IDENT</button>
   <button type="button" role="tab" data-tab="ohm" aria-selected="false">Ohm's Law</button>
   <button type="button" role="tab" data-tab="batt" aria-selected="false">Battery</button>
+  <button type="button" role="tab" data-tab="div" aria-selected="false">Divider</button>
+  <button type="button" role="tab" data-tab="rc" aria-selected="false">RC</button>
   <button type="button" role="tab" data-tab="gnss" aria-selected="false">GNSS</button>
   <button type="button" role="tab" data-tab="rf" aria-selected="false">Radio / RF</button>
+  <span class="tabsep" aria-hidden="true"></span>
+  <span class="tabgrp">Mechanical</span>
+  <button type="button" role="tab" data-tab="adh" aria-selected="false">Adhesives</button>
+  <button type="button" role="tab" data-tab="torq" aria-selected="false">Torque</button>
+  <button type="button" role="tab" data-tab="pot" aria-selected="false">Materials</button>
+  <button type="button" role="tab" data-tab="sg" aria-selected="false">Strain</button>
 </div></nav>
 <main>
 
@@ -204,6 +224,71 @@ td.l,th.l{text-align:left}
     <div class="result"><div class="big first" id="gBig"></div><div class="sub" id="gSub"></div><button class="copy" type="button" data-copy="gBig">Copy</button></div>
     <p class="note">Assumption: refilling the usable capacity at constant charger current, with 85 % charge efficiency by default (editable). Real chargers taper near full (CV phase), so allow extra time.</p>
   </div>
+  <div class="card">
+    <h2>Current limits (C-rate presets)</h2>
+    <div class="grid">
+      <div><label for="bDiscC">Max continuous discharge (C)</label><input id="bDiscC" type="number" inputmode="decimal" min="0" step="any" value="3"></div>
+      <div><label for="bPeakC">Peak discharge (C)</label><input id="bPeakC" type="number" inputmode="decimal" min="0" step="any" value="5"></div>
+      <div><label for="bChgC">Max charge (C)</label><input id="bChgC" type="number" inputmode="decimal" min="0" step="any" value="0.7"></div>
+    </div>
+    <div class="result" id="bLimRes"><div class="big first" id="bLimBig"></div><dl class="kv" id="bLimKv"></dl><div class="note" id="bLimNote"></div><button class="copy" type="button" data-copy="bLimBig">Copy</button></div>
+    <p class="note">Typical / rough chemistry presets (editable). Limits = C × pack capacity above. Warnings use the C-rate current, the runtime load, and the charger current.</p>
+  </div>
+  <div class="card">
+    <h2>IR drop under load</h2>
+    <div class="grid">
+      <div><label for="bIRm">Cell IR (mΩ)</label><input id="bIRm" type="number" inputmode="decimal" min="0" step="any" value="40"></div>
+      <div><label for="bIRI">Load current (A)</label><input id="bIRI" type="number" inputmode="decimal" min="0" step="any" value="50"></div>
+    </div>
+    <div class="result" id="bIRRes"><div class="big first" id="bIRBig"></div><dl class="kv" id="bIRKv"></dl><button class="copy" type="button" data-copy="bIRBig">Copy</button></div>
+    <p class="note">Typical / rough IR per cell (editable). Pack IR = (R_cell × S) / P, using the series/parallel counts above. V drop = I × R; heat = I²R. Cell IR varies widely with size and age.</p>
+  </div>
+  <div class="card">
+    <h2>Energy density (pack estimate)</h2>
+    <div class="grid">
+      <div><label for="bWhkg">Wh/kg</label><input id="bWhkg" type="number" inputmode="decimal" min="0" step="any" value="200"></div>
+      <div><label for="bWhL">Wh/L</label><input id="bWhL" type="number" inputmode="decimal" min="0" step="any" value="500"></div>
+    </div>
+    <div class="result" id="bDenRes"><div class="big first" id="bDenBig"></div><dl class="kv" id="bDenKv"></dl><button class="copy" type="button" data-copy="bDenBig">Copy</button></div>
+    <p class="note">Typical / rough cell-level mid values (editable). Real packs are heavier and bulkier once housing, BMS and structure are included. Mass = nameplate Wh ÷ (Wh/kg); volume = Wh ÷ (Wh/L).</p>
+  </div>
+</section>
+
+<!-- ============ DIVIDER ============ -->
+<section id="tab-div" role="tabpanel">
+  <div class="card">
+    <h2>Voltage divider</h2>
+    <div class="grid">
+      <div><label for="dVin">Vin (V)</label><input id="dVin" type="number" inputmode="decimal" step="any" value="12"></div>
+      <div><label for="dVout">Vout (V)</label><input id="dVout" type="number" inputmode="decimal" step="any"></div>
+      <div><label for="dR1">R1 (Ω)</label><input id="dR1" type="number" inputmode="decimal" step="any" min="0" value="10000"></div>
+      <div><label for="dR2">R2 (Ω)</label><input id="dR2" type="number" inputmode="decimal" step="any" min="0" value="4700"></div>
+    </div>
+    <div class="result" id="dRes"><div class="big first" id="dBig"></div><dl class="kv" id="dKv"></dl><button class="copy" type="button" data-copy="dBig">Copy</button></div>
+    <p class="note">Fill any three; the remaining field (dashed) is calculated. Vout is across R2: Vout = Vin × R2 / (R1 + R2). Current and power assume a DC unloaded divider (no load on Vout).</p>
+  </div>
+</section>
+
+<!-- ============ RC ============ -->
+<section id="tab-rc" role="tabpanel">
+  <div class="card">
+    <h2>RC filter / snubber</h2>
+    <div class="grid">
+      <div><label for="rcR">Resistance</label><div class="inrow"><input id="rcR" type="number" inputmode="decimal" min="0" step="any" value="1000"><select id="rcRu" aria-label="R unit"><option value="1">Ω</option><option value="1e3">kΩ</option><option value="1e6">MΩ</option></select></div></div>
+      <div><label for="rcC">Capacitance</label><div class="inrow"><input id="rcC" type="number" inputmode="decimal" min="0" step="any" value="1"><select id="rcCu" aria-label="C unit"><option value="1e-12">pF</option><option value="1e-9">nF</option><option value="1e-6" selected>µF</option><option value="1e-3">mF</option><option value="1">F</option></select></div></div>
+      <div class="full"><label for="rcV">Voltage (V) for energy</label><input id="rcV" type="number" inputmode="decimal" min="0" step="any" value="12"></div>
+    </div>
+    <div class="result" id="rcRes"><div class="big first" id="rcBig"></div><dl class="kv" id="rcKv"></dl><button class="copy" type="button" data-copy="rcBig">Copy</button></div>
+    <p class="note">τ = R C. First-order cutoff f<sub>c</sub> = 1 / (2 π R C). Stored energy E = ½ C V² at the voltage above.</p>
+  </div>
+  <div class="card">
+    <h2>Automotive notes</h2>
+    <ul class="note" style="margin:0;padding-left:18px;line-height:1.5">
+      <li>Input RC filter: often used on sensor or ECU analogue inputs to limit bandwidth and reject noise or spikes. Keep the capacitor close to the pin; check that the sensor can drive the chosen R. Set f<sub>c</sub> well above the wanted signal and well below the noise you need to reject.</li>
+      <li>RC snubber: an R–C across a relay coil, ignition coil or other inductive load (or across contacts) damps the turn-off spike and ringing. Choose a capacitor voltage rating above the peak you will see, including the inductive spike, which can be many times the supply. The resistor limits discharge current and damps the ringing.</li>
+      <li>These notes are qualitative. Component values and ratings depend on the load and must be verified for the application.</li>
+    </ul>
+  </div>
 </section>
 
 <!-- ============ GNSS ============ -->
@@ -252,6 +337,171 @@ $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A</textarea>
     <h2>SWR</h2>
     <label for="sS">SWR (≥ 1)</label><input id="sS" type="number" inputmode="decimal" step="any" min="1" value="2">
     <div class="result"><div class="big first" id="sBig"></div><dl class="kv" id="sKv"></dl><button class="copy" type="button" data-copy="sBig">Copy</button></div>
+  </div>
+</section>
+
+<!-- ============ ADHESIVES ============ -->
+<section id="tab-adh" role="tabpanel">
+  <div class="card">
+    <h2>Bond force</h2>
+    <div class="grid">
+      <div><label for="aMode">Area</label><select id="aMode"><option value="lw">Length × width</option><option value="area">Direct area</option></select></div>
+      <div><label for="aUnit">Units</label><select id="aUnit"><option value="mm" selected>mm</option><option value="in">in</option></select></div>
+      <div id="aLW"><label for="aL">Length</label><input id="aL" type="number" inputmode="decimal" min="0" step="any" value="25"></div>
+      <div id="aWW"><label for="aW">Width</label><input id="aW" type="number" inputmode="decimal" min="0" step="any" value="12.5"></div>
+      <div id="aAW" class="full" hidden><label for="aA">Area</label><input id="aA" type="number" inputmode="decimal" min="0" step="any" value="312.5"></div>
+      <div><label for="aShear">Shear strength (MPa)</label><input id="aShear" type="number" inputmode="decimal" min="0" step="any" value="37"></div>
+      <div><label for="aSF">Safety factor</label><input id="aSF" type="number" inputmode="decimal" min="0" step="any" value="1"></div>
+    </div>
+    <label for="aPick">Fill strength from adhesive</label>
+    <select id="aPick"></select>
+    <div class="note" id="aPickNote"></div>
+    <div class="result" id="aFRes"><div class="big first" id="aFBig"></div><dl class="kv" id="aFKv"></dl><button class="copy" type="button" data-copy="aFBig">Copy</button></div>
+    <p class="note">Force = area × shear strength / safety factor (1 MPa = 1 N/mm²). Default 25 × 12.5 mm is a typical ISO 4587 overlap. TDS shear values are typical, not design allowables — use a safety factor and verify for the application.</p>
+  </div>
+  <div class="card">
+    <h2>Suggester</h2>
+    <div class="grid">
+      <div><label for="aSubA">Substrate A</label><select id="aSubA"></select></div>
+      <div><label for="aSubB">Substrate B</label><select id="aSubB"></select></div>
+    </div>
+    <div id="aSug" class="list" style="margin-top:10px"></div>
+    <p class="note">Ranked by compatibility (TDS-listed substrate data first), then by the lower of the two measured shears. Tap a row for the detail card and to fill the force calculator. Typical TDS values; verify for your application.</p>
+  </div>
+  <div class="card">
+    <h2>Adhesive library</h2>
+    <div id="aLib" class="list"></div>
+    <div class="result" id="aDet" style="margin-top:10px"></div>
+    <p class="note">Typical TDS values, not specifications. Shear is quoted on the substrate named in the card. Sources: Henkel LOCTITE TDS (datasheets.tdx.henkel.com) and 3M Scotch-Weld / VHB TDS (see each card). A value marked “—” was not stated as a single figure on the TDS.</p>
+  </div>
+  <div class="card">
+    <h2>Material library</h2>
+    <label for="aMat">Material</label>
+    <select id="aMat"></select>
+    <div class="result" id="aMatDet" style="margin-top:10px"></div>
+    <p class="note">CTE and service temperatures are well-established typical values, not grade-specific guarantees. Surface prep is general practice; follow the adhesive TDS.</p>
+  </div>
+</section>
+
+<!-- ============ TORQUE ============ -->
+<section id="tab-torq" role="tabpanel">
+  <div class="card">
+    <h2>Fastener torque helper</h2>
+    <div class="grid">
+      <div><label for="tSize">Bolt size</label><select id="tSize"></select></div>
+      <div><label for="tGrade">Grade</label><select id="tGrade">
+        <option value="8.8" selected>8.8</option>
+        <option value="10.9">10.9</option>
+        <option value="12.9">12.9</option>
+        <option value="A2-70">A2-70</option>
+        <option value="A4-70">A4-70</option>
+      </select></div>
+      <div><label for="tLub">Lubrication</label><select id="tLub">
+        <option value="0.20" selected>Dry (K ≈ 0.20)</option>
+        <option value="0.15">Oiled (K ≈ 0.15)</option>
+        <option value="custom">Custom K</option>
+      </select></div>
+      <div><label for="tK">Nut factor K</label><input id="tK" type="number" inputmode="decimal" min="0" step="any" value="0.20"></div>
+      <div><label for="tPct">Preload (% of proof)</label><input id="tPct" type="number" inputmode="decimal" min="0" max="100" step="any" value="75"></div>
+      <div><label for="tF">Target clamp force (kN, optional)</label><input id="tF" type="number" inputmode="decimal" min="0" step="any" placeholder="leave blank"></div>
+    </div>
+    <div class="result" id="tRes"><div class="big first" id="tBig"></div><dl class="kv" id="tKv"></dl><div class="note" id="tNote"></div><button class="copy" type="button" data-copy="tBig">Copy</button></div>
+    <ul class="note" style="margin:10px 0 0;padding-left:18px;line-height:1.5">
+      <li>Default preload = 75 % of proof load (editable). Proof load = stress area A<sub>s</sub> × proof strength. A<sub>s</sub> and proof stresses are ISO 898-1 values for metric coarse threads; A2-70 / A4-70 use the 0.2 % yield (450 MPa) from ISO 3506-1.</li>
+      <li>Torque T = K × F × d, with d the nominal diameter. K ≈ 0.20 dry, 0.15 oiled are typical starting points (editable) — actual K varies with finish, lubrication and tool.</li>
+      <li>The real target torque comes from the drawing or the fastener / manufacturer specification. This is a helper, not a substitute.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ POTTING / MATERIALS ============ -->
+<section id="tab-pot" role="tabpanel">
+  <div class="card">
+    <h2>Potting materials</h2>
+    <label for="potPick">Material</label>
+    <select id="potPick"></select>
+    <div class="grid" style="margin-top:10px">
+      <div class="full"><label for="potName">Name</label><input id="potName" type="text" maxlength="80"></div>
+      <div class="full"><label for="potChem">Chemistry</label><input id="potChem" type="text" maxlength="80"></div>
+      <div><label for="potHard">Hardness (Shore)</label><input id="potHard" type="text" maxlength="60"></div>
+      <div><label for="potK">Thermal conductivity (W/m·K)</label><input id="potK" type="text" maxlength="40"></div>
+      <div class="full"><label for="potTemp">Operating temperature</label><input id="potTemp" type="text" maxlength="80"></div>
+      <div class="full"><label for="potCure">Cure type</label><input id="potCure" type="text" maxlength="80"></div>
+      <div class="full"><label for="potUses">Typical uses</label><textarea id="potUses" maxlength="400"></textarea></div>
+      <div class="full"><label for="potNotes">Key notes</label><textarea id="potNotes" maxlength="500"></textarea></div>
+    </div>
+    <div class="btns">
+      <button class="btn ghost" type="button" id="potAdd">Add custom</button>
+      <button class="btn ghost" type="button" id="potDup">Duplicate</button>
+      <button class="btn ghost" type="button" id="potDel">Delete custom</button>
+      <button class="btn ghost" type="button" id="potReset">Reset typicals</button>
+    </div>
+    <p class="note">Typical / rough chemistry-class values, not product specifications. Edits are kept in this browser (localStorage) and work offline. Reset typicals restores the built-in list and drops custom entries.</p>
+  </div>
+  <div class="card">
+    <h2>Library</h2>
+    <div id="potLib" class="list"></div>
+  </div>
+</section>
+
+<!-- ============ STRAIN GAUGE ============ -->
+<section id="tab-sg" role="tabpanel">
+  <div class="card">
+    <h2>Strain gauge bridge</h2>
+    <div class="grid">
+      <div class="full"><label for="sgCfg">Configuration</label><select id="sgCfg">
+        <option value="quarter" selected>Quarter-bridge (one active gauge)</option>
+        <option value="half">Half-bridge, bending (adjacent arms, ±ε)</option>
+        <option value="full">Full-bridge, bending (four active gauges)</option>
+        <option value="torque">Torque / shear, full-bridge (±45°)</option>
+      </select></div>
+      <div><label for="sgGF">Gauge factor GF</label><input id="sgGF" type="number" inputmode="decimal" min="0" step="any" value="2.0"></div>
+      <div><label for="sgVex">Excitation (V)</label><input id="sgVex" type="number" inputmode="decimal" min="0" step="any" value="5"></div>
+      <div class="full"><label for="sgPreset">Gauge preset</label><select id="sgPreset">
+        <option value="foil2" selected>Metal-foil constantan, GF 2.00 (120 / 350 Ω typ.)</option>
+        <option value="foil21">Metal-foil constantan, GF 2.05 (120 / 350 Ω typ.)</option>
+        <option value="custom">Custom GF</option>
+      </select></div>
+      <div><label for="sgMat">Material E</label><select id="sgMat"></select></div>
+      <div><label for="sgE">E (GPa)</label><input id="sgE" type="number" inputmode="decimal" min="0" step="any" value="200"></div>
+      <div class="full"><label for="sgNu">Poisson’s ratio ν</label><input id="sgNu" type="number" inputmode="decimal" min="0" max="0.5" step="any" value="0.30"></div>
+      <div class="full"><label for="sgMode">Input</label><select id="sgMode">
+        <option value="strain" selected>Strain (µε)</option>
+        <option value="stress">Stress</option>
+        <option value="geom">Force / torque + geometry</option>
+      </select></div>
+      <div id="sgStrainBox" class="full"><label for="sgEps">Strain (µε)</label><input id="sgEps" type="number" inputmode="decimal" step="any" value="1000"></div>
+      <div id="sgStressBox" class="full" hidden><label for="sgStress" id="sgStressL">Axial stress (MPa)</label><input id="sgStress" type="number" inputmode="decimal" step="any" value="100"></div>
+    </div>
+    <div id="sgGeomBox" hidden>
+      <label for="sgGeom">Geometry</label>
+      <select id="sgGeom">
+        <option value="cantilever">Cantilever beam — ε = 6FL / (E b h²)</option>
+        <option value="axial">Axial bar — ε = F / (A E)</option>
+        <option value="shaft">Solid round shaft, torque — ε = 16T(1+ν) / (π E d³)</option>
+      </select>
+      <div class="grid" style="margin-top:10px">
+        <div id="sgFbox"><label for="sgF">Force F (N)</label><input id="sgF" type="number" inputmode="decimal" step="any" value="10"></div>
+        <div id="sgTbox" hidden><label for="sgTq">Torque T (N·m)</label><input id="sgTq" type="number" inputmode="decimal" step="any" value="100"></div>
+        <div id="sgLbox"><label for="sgLen">Length L (mm)</label><input id="sgLen" type="number" inputmode="decimal" min="0" step="any" value="100"></div>
+        <div id="sgBbox"><label for="sgB">Width b (mm)</label><input id="sgB" type="number" inputmode="decimal" min="0" step="any" value="20"></div>
+        <div id="sgHbox"><label for="sgH">Thickness h (mm)</label><input id="sgH" type="number" inputmode="decimal" min="0" step="any" value="3"></div>
+        <div id="sgDbox" hidden><label for="sgD">Diameter d (mm)</label><input id="sgD" type="number" inputmode="decimal" min="0" step="any" value="20"></div>
+        <div id="sgAbox" hidden><label for="sgAx">Section</label><select id="sgAx"><option value="rect" selected>Rectangle b × h</option><option value="round">Round, diameter d</option></select></div>
+      </div>
+    </div>
+    <label class="chk" id="sgExactLab"><input id="sgExact" type="checkbox"><span>Exact (nonlinear) quarter-bridge formula</span></label>
+    <p class="note" id="sgExactNote" style="margin-top:0">V<sub>o</sub>/V<sub>ex</sub> = GF·ε / (4 + 2·GF·ε). The linear form is GF·ε/4.</p>
+    <div class="result" id="sgRes"><div class="big first" id="sgBig"></div><dl class="kv" id="sgKv"></dl><button class="copy" type="button" data-copy="sgBig">Copy</button></div>
+    <p class="note" id="sgForm"></p>
+  </div>
+  <div class="card">
+    <h2>Instrumentation notes</h2>
+    <ul class="note" style="margin:0;padding-left:18px;line-height:1.5">
+      <li>Outputs are small (often 0.5–10 mV/V). Use an instrumentation amplifier or a 24-bit bridge ADC (HX711, ADS1220 and similar), with ratiometric excitation (measure V<sub>o</sub> relative to V<sub>ex</sub>) so supply drift largely cancels.</li>
+      <li>Quarter-bridge has no inherent temperature compensation: add a dummy gauge on the same material, unstrained (or in the Poisson position), in the adjacent arm. Half- and full-bridge bending layouts cancel uniform temperature and axial components if the gauges are well matched.</li>
+      <li>Keep leads short and of equal length, use a shielded twisted pair, and star-ground the shield at the amplifier. Constantan foil gauges are commonly 120 Ω or 350 Ω; 350 Ω reduces self-heating at a given excitation.</li>
+    </ul>
   </div>
 </section>
 </main>
@@ -373,13 +623,238 @@ var ET = (function () {
 
   var batt = {
     USABLE: { liion: 80, lfp: 90, pb: 50, nimh: 80, custom: 100 },
+    // Typical / rough chemistry presets (editable in the UI). IR is mΩ per cell; densities are mid cell-level.
+    PRESETS: {
+      liion: { discC: 3, peakC: 5, chgC: 0.7, ir_mohm: 40, whkg: 200, whl: 500 },
+      lfp:   { discC: 2, peakC: 3, chgC: 0.5, ir_mohm: 25, whkg: 120, whl: 250 },
+      pb:    { discC: 0.3, peakC: 3, chgC: 0.2, ir_mohm: 1.5, whkg: 35, whl: 80 },
+      nimh:  { discC: 1, peakC: 3, chgC: 0.3, ir_mohm: 30, whkg: 80, whl: 200 },
+      custom:{ discC: 1, peakC: 2, chgC: 0.5, ir_mohm: 50, whkg: 100, whl: 200 }
+    },
     energy: function (V, Ah, usePct) { var wh = V * Ah; return { wh: wh, kwh: wh / 1000, usableWh: wh * usePct / 100, usableAh: Ah * usePct / 100 }; },
     ahFromKwh: function (kwh, V) { return kwh * 1000 / V; },
     cFromA: function (A, Ah) { return A / Ah; },
     aFromC: function (C, Ah) { return C * Ah; },
     pack: function (cellV, cellAh, S, P) { var v = cellV * S, ah = cellAh * P; return { V: v, Ah: ah, Wh: v * ah, cells: S * P }; },
     runtimeH: function (usableWh, usableAh, load, unit) { return unit === "W" ? usableWh / load : usableAh / load; },
-    chargeH: function (ahToCharge, chargerA, effPct) { return ahToCharge / (chargerA * effPct / 100); }
+    chargeH: function (ahToCharge, chargerA, effPct) { return ahToCharge / (chargerA * effPct / 100); },
+    packIR: function (cellMohm, S, P) { return (cellMohm / 1000) * S / P; },
+    irdrop: function (I, Rpack, Voc) { var vd = I * Rpack; return { R: Rpack, vd: vd, vload: Voc - vd, heat: I * I * Rpack }; }
+  };
+
+  var div = {
+    // Solve the missing one of Vin, R1, R2, Vout (Vout across R2).
+    solve: function (g, unknown) {
+      var Vin = g.Vin, R1 = g.R1, R2 = g.R2, Vout = g.Vout;
+      if (unknown === "Vout") Vout = Vin * R2 / (R1 + R2);
+      else if (unknown === "R2") {
+        if (Vin === Vout) throw new Error("Vout cannot equal Vin when solving R2");
+        if (Vout <= 0 || Vout >= Vin) throw new Error("Vout must be between 0 and Vin");
+        R2 = R1 * Vout / (Vin - Vout);
+      } else if (unknown === "R1") {
+        if (Vout <= 0) throw new Error("Vout must be greater than 0");
+        if (Vout >= Vin) throw new Error("Vout must be below Vin");
+        R1 = R2 * (Vin - Vout) / Vout;
+      } else if (unknown === "Vin") {
+        if (Vout <= 0) throw new Error("Vout must be greater than 0");
+        Vin = Vout * (R1 + R2) / R2;
+      } else throw new Error("Need any three of Vin, R1, R2, Vout");
+      if (!(Vin > 0 && R1 > 0 && R2 > 0 && Vout > 0)) throw new Error("All solved values must be greater than 0");
+      var I = Vin / (R1 + R2);
+      return { Vin: Vin, R1: R1, R2: R2, Vout: Vout, I: I, P1: I * I * R1, P2: I * I * R2 };
+    }
+  };
+
+  var rc = {
+    tau: function (R, C) { return R * C; },
+    fc: function (R, C) { return 1 / (2 * Math.PI * R * C); },
+    energy: function (C, V) { return 0.5 * C * V * V; }
+  };
+
+  var adh = {
+    SUBS: [
+      { id: "aluminium", name: "Aluminium" },
+      { id: "steel", name: "Steel" },
+      { id: "cfrp", name: "Carbon fibre" },
+      { id: "gfrp", name: "Glass fibre" },
+      { id: "abs", name: "ABS" },
+      { id: "pa", name: "PA (nylon)" },
+      { id: "pbt", name: "PBT" },
+      { id: "pc", name: "Polycarbonate" },
+      { id: "lse", name: "PP / PE (LSE)" }
+    ],
+    // Typical engineering values, not grade-specific.
+    MATS: [
+      { id: "aluminium", name: "Aluminium", cte: "23 ppm/K (typical 6061 / general)", tmax: "~150–180 °C before common heat-treatable grades lose temper strength (melts ~660 °C)", prep: "Degrease, abrade (e.g. 180–320 grit) or grit-blast, optionally etch/anodise, and bond promptly — the oxide grows quickly." },
+      { id: "steel", name: "Steel", cte: "12 ppm/K (typical carbon / mild steel)", tmax: "The metal itself is rarely the limit (~400 °C+ before heavy oxidation); the adhesive or coating usually is.", prep: "Degrease, abrade or grit-blast to clean bright metal, remove rust and mill scale, and bond soon." },
+      { id: "cfrp", name: "Carbon fibre (epoxy CFRP)", cte: "≈ 0–2 ppm/K along the fibres (can be slightly negative); ~30–50 ppm/K through-thickness", tmax: "Typically 80–120 °C for a standard epoxy matrix; high-temperature systems can go higher.", prep: "Use peel ply or a light abrasion, degrease with IPA, and avoid cutting through load-bearing fibres. Watch for peel-ply or mould-release contamination." },
+      { id: "gfrp", name: "Glass fibre (GFRP / GRP)", cte: "~10–20 ppm/K for a typical laminate (often ~15)", tmax: "Typically 80–120 °C (polyester) or ~120–150 °C (epoxy matrix).", prep: "Abrade to remove gelcoat gloss, degrease, and remove dust. Do not rely on a shiny moulded face." },
+      { id: "abs", name: "ABS", cte: "~70–90 ppm/K (typically ~80)", tmax: "~80–90 °C continuous (softens above this).", prep: "Degrease with IPA (avoid aggressive solvents that can craze), light abrasion, and a plastics primer if the adhesive TDS calls for one." },
+      { id: "pa", name: "PA (nylon)", cte: "~80–100 ppm/K dry; moisture uptake changes dimensions and surface energy", tmax: "~80–120 °C continuous depending on grade (PA6 often ~80–100 °C).", prep: "Degrease, abrade; dry the part before bonding (nylon is hygroscopic). Plasma or a primer often helps. Moisture-sensitive." },
+      { id: "pbt", name: "PBT", cte: "~60–80 ppm/K (typically ~70)", tmax: "~120 °C typical continuous.", prep: "Degrease, light abrasion; a primer may be required. Few adhesive TDS quote PBT specifically — test the joint." },
+      { id: "pc", name: "Polycarbonate", cte: "~65–70 ppm/K", tmax: "~120 °C typical continuous (softens ~140–150 °C).", prep: "Degrease carefully — PC is solvent-sensitive (avoid acetone / MEK). Light abrasion; a primer for cyanoacrylates if specified." }
+    ],
+    // shear in MPa; shears{} only where a TDS number was found.
+    ITEMS: [
+      { id: "ea9466", name: "Loctite EA 9466", type: "2K toughened epoxy, 2:1",
+        shear: 37, shearSub: "grit-blasted steel, ISO 4587, 5 d @ 22 °C",
+        shears: { steel: 37, aluminium: 26, pc: 5.3, pa: 1.6, gfrp: 5.0, abs: 4.7 },
+        work: "60 min", fixture: "180 min (grit-blasted steel, 0.1 N/mm²)",
+        cure: "5 d @ 22 °C (quoted OLS); 24 h before service loads (directions)",
+        temp: "— (TDS gives a hot-strength curve, no single rating)",
+        ok: ["aluminium", "steel", "gfrp", "abs", "pa", "pc"],
+        notes: "Also: abraded Al 26 MPa, anodised Al 17.9, stainless 23, galvanized 8.5, GRP 5.0, ABS 4.7, PC 5.3, nylon 1.6 MPa. Nylon is weak. Tg 62 °C (ASTM E1640).",
+        source: "Henkel LOCTITE EA 9466 TDS, March 2025" },
+      { id: "ea9497", name: "Loctite EA 9497", type: "2K medium-viscosity epoxy, 2:1",
+        shear: 20, shearSub: "mild steel grit-blasted, ISO 4587, 7 d @ 22 °C",
+        shears: { steel: 20, aluminium: 15, abs: 6, pc: 4, gfrp: 8 },
+        work: "3–4 h @ 22 °C (165–255 min pot life, TDS)", fixture: "8 h @ 22 °C",
+        cure: "7 d @ 22 °C (quoted OLS)",
+        temp: "Tg 67 °C (7 d @ 22 °C); 97 °C / 116 °C with 80 °C / 120 °C post-cure — no single service rating",
+        ok: ["aluminium", "steel", "gfrp", "abs", "pc"],
+        notes: "High compressive strength and heat-transfer / potting use. Stainless 9, as-received Al 7, abraded Al 15, GFR epoxy 8 MPa. Plastics are modest.",
+        source: "Henkel LOCTITE EA 9497 TDS, October 2014" },
+      { id: "l406", name: "Loctite 406", type: "Ethyl cyanoacrylate, low viscosity",
+        shear: 15.5, shearSub: "grit-blasted steel, ISO 4587, 24 h @ 22 °C",
+        shears: { steel: 15.5, aluminium: 12, abs: 8.8, pc: 9.1 },
+        work: "— (humidity cure; no pot life)", fixture: "Steel 20–45 s; Al / ABS / PVC < 5 s; PC 10–20 s (22 °C / 50 % RH)",
+        cure: "≥ 24 h for full chemical resistance; 24–72 h before service loads",
+        temp: "— (TDS hot-strength curve; no single rating)",
+        ok: ["aluminium", "steel", "abs", "pc"],
+        notes: "Intended for plastics and elastomers with very fast fixture. Also phenolic 11.3, PVC 8.7 MPa. For PP / PE / PTFE use LOCTITE SF 770 primer (PP + 406: 15 MPa block shear, SF 770 TDS).",
+        source: "Henkel LOCTITE 406 TDS, February 2012; SF 770 primer TDS, May 2021" },
+      { id: "l454", name: "Loctite 454", type: "Ethyl cyanoacrylate gel, thixotropic",
+        shear: 20.9, shearSub: "grit-blasted steel, ISO 4587, 72 h @ 22 °C",
+        shears: { steel: 20.9, aluminium: 17.1, abs: 8.3, pc: 7.7 },
+        work: "— (humidity cure; no pot life)", fixture: "Steel 30–60 s; Al 2–10 s; ABS < 5 s; PC 10–15 s (22 °C / 50 % RH)",
+        cure: "≥ 24 h functional; quoted OLS at 72 h; 24–72 h before service loads",
+        temp: "— (TDS hot-strength curve; no single rating)",
+        ok: ["aluminium", "steel", "abs", "pc"],
+        notes: "Gel, stays put on vertical faces; also for porous materials (wood, paper, leather, fabric). PVC 7.1, phenolic 12.3 MPa. SF 770 primer for polyolefins.",
+        source: "Henkel LOCTITE 454 TDS, February 2012" },
+      { id: "l401", name: "Loctite 401", type: "Ethyl cyanoacrylate, low viscosity",
+        shear: 20, shearSub: "grit-blasted steel, ISO 4587, 72 h @ 22 °C",
+        shears: { steel: 20, aluminium: 12.4, abs: 7.5, pc: 9.6 },
+        work: "— (humidity cure; no pot life)", fixture: "Steel / Al / ABS / PVC < 5 s; PC 5–10 s (22 °C / 50 % RH)",
+        cure: "≥ 24 h functional; quoted OLS at 72 h; 24–72 h before service loads",
+        temp: "— (TDS hot-strength curve; no single rating)",
+        ok: ["aluminium", "steel", "abs", "pc"],
+        notes: "General-purpose instant adhesive for metals, plastics and elastomers; also porous materials. PVC 10, phenolic 12.6 MPa. SF 770 primer for PP / PE / PTFE.",
+        source: "Henkel LOCTITE 401 TDS, February 2012" },
+      { id: "dp810", name: "3M Scotch-Weld DP810", type: "2K low-odour acrylic, 1:1",
+        shear: 29, shearSub: "etched aluminium, ASTM D1002, 4200 psi (2016 TDS)",
+        shears: { aluminium: 29, steel: 21.4, abs: 4.1, pc: 5.9, gfrp: 26.2 },
+        work: "10 min", fixture: "20 min (to 50 psi / handling)",
+        cure: "8–24 h (to ≥ 80 % ultimate, Al OLS; DP810NS family TDS, June 2024)",
+        temp: "— (no single rating; 2019 3M selector lists ~500 psi / 3 MPa at 82 °C)",
+        ok: ["aluminium", "steel", "gfrp", "abs", "pc"],
+        notes: "Minimal surface prep; also oily metals. 2016 TDS: CRS 3100 psi (21.4 MPa), stainless 3400, green FRP 3800, ABS 600, PC 850 psi. Work/fixture/full-cure times from the June 2024 DP810NS TDS (same 10 / 20 min as the 2019 selector for DP810).",
+        source: "3M Scotch-Weld DP810 TDS, February 2016; DP810NS TDS, June 2024; 3M Structural Adhesives selector, January 2019" },
+      { id: "dp420", name: "3M Scotch-Weld DP420", type: "2K toughened epoxy, 2:1",
+        shear: 27.8, shearSub: "sandblasted aluminium, ASTM D1002 / ISO 4587, 7 d @ 23 °C",
+        shears: { aluminium: 27.8, steel: 19.6, abs: 3, pc: 4.2, gfrp: 7.3, cfrp: 39.3 },
+        work: "20 min open time (10 g mixed work life ~20 min @ 23 °C)", fixture: "2.5 h to handling strength @ 23 °C",
+        cure: "7 d @ 23 °C (quoted OLS)",
+        temp: "— (no single rating; TDS OLS 12.9 MPa @ 49 °C, 2.7 MPa @ 82 °C on Al)",
+        ok: ["aluminium", "steel", "cfrp", "gfrp", "abs", "pc"],
+        notes: "Structural epoxy for metals and composites. CRS 19.6 MPa, FRP (epoxy) 39.3 (often substrate-limited), FRP (polyester) 7.3, ABS 3, PC 4.2, PVC 1.2 MPa. FRP (epoxy) is used as a carbon-fibre-composite proxy — the TDS does not say 'CFRP' by name.",
+        source: "3M Scotch-Weld DP420 Black TDS, December 2025" },
+      { id: "dp8005", name: "3M Scotch-Weld DP8005", type: "2K acrylic for LSE plastics, 10:1",
+        shear: 15.7, shearSub: "aluminium (off-white), ASTM D1002, 2275 psi, ≥ 48 h @ 23 °C",
+        shears: { aluminium: 15.7, steel: 17.2, abs: 10.5, pc: 5.9, lse: 7.6, gfrp: 17.1 },
+        work: "2.5–3 min @ 23 °C", fixture: "2–3 h to handling (≥ 50 psi) @ 23 °C",
+        cure: "8–24 h @ 23 °C",
+        temp: "— (no single rating on the 2016 TDS)",
+        ok: ["aluminium", "steel", "gfrp", "abs", "pc", "lse"],
+        notes: "Bonds many PP, PE and TPO grades without special prep. HDPE / PP ~1100 psi (7.6 MPa, substrate failure); CRS 2500 psi (17.2 MPa); green FRP 2475 psi. Off-white figures quoted. PTFE is poor (~250 psi AF).",
+        source: "3M Scotch-Weld DP8005 TDS, February 2016" },
+      { id: "vhb4950", name: "3M VHB 4950 family", type: "Acrylic foam tape, firm, general-purpose (HSE)",
+        shear: 0.55, shearSub: "stainless steel, ASTM D1002 / ISO 4587, 72 h dwell @ 23 °C (80 psi / 550 kPa)",
+        shears: { steel: 0.55, aluminium: 0.55 },
+        work: "— (pressure-sensitive)", fixture: "Immediate tack; typical OLS after 72 h dwell",
+        cure: "Typical performance after 72 h @ 23 °C",
+        temp: "Long-term 93 °C; short-term 149 °C; check min. application temp. on the TDS",
+        ok: ["aluminium", "steel"],
+        notes: "HSE family (metals, glass, easier plastics and paints). Not intended as a general LSE (PP/PE) tape — use the 5952 family for broader surface energy. Dynamic overlap shear is modest compared with structural adhesives. 1.1 mm typical thickness (4950).",
+        source: "3M VHB Tape 4950 TDS, September 2024" },
+      { id: "vhb5952", name: "3M VHB 5952 family", type: "Acrylic foam tape, very conformable, modified acrylic",
+        shear: 0.55, shearSub: "stainless steel, ASTM D1002 / ISO 4587, 72 h dwell @ 23 °C (80 psi / 550 kPa)",
+        shears: { steel: 0.55, aluminium: 0.55, abs: 0.55, pc: 0.55, lse: 0.55 },
+        work: "— (pressure-sensitive)", fixture: "Immediate tack; typical OLS after 72 h dwell",
+        cure: "Typical performance after 72 h @ 23 °C",
+        temp: "Long-term 93 °C; short-term 149 °C; min. application 10 °C",
+        ok: ["aluminium", "steel", "abs", "pc", "lse"],
+        notes: "Bonds a broad range of high, medium and medium/low surface-energy substrates, including many plastics, paints and powder coats. Same 550 kPa dynamic shear on SS as 4950. Conformable foam helps slightly mismatched surfaces. 1.1 mm typical (5952).",
+        source: "3M VHB Tape 5952 TDS, September 2024" }
+    ],
+    byId: function (id) { for (var i = 0; i < adh.ITEMS.length; i++) if (adh.ITEMS[i].id === id) return adh.ITEMS[i]; return null; },
+    matById: function (id) { for (var i = 0; i < adh.MATS.length; i++) if (adh.MATS[i].id === id) return adh.MATS[i]; return null; },
+    forceN: function (areaMm2, mpa, sf) { return areaMm2 * mpa / sf; },
+    // Rank: listed TDS shear on both (or one if same) first, then class compatibility, then strength.
+    suggest: function (a, b) {
+      return adh.ITEMS.map(function (it) {
+        var sa = it.shears[a], sb = it.shears[b];
+        var oka = it.ok.indexOf(a) >= 0, okb = it.ok.indexOf(b) >= 0;
+        var used, why, rank;
+        if (isFinite(sa) && isFinite(sb)) {
+          used = Math.min(sa, sb);
+          why = (a === b) ? (used + " MPa on " + a) : (used + " MPa (lower of " + sa + " / " + sb + " MPa)");
+          rank = 3000 + used;
+        } else if (isFinite(sa) && okb) {
+          used = sa; why = sa + " MPa on " + a + " (no TDS number for " + b + ")"; rank = 2000 + used;
+        } else if (isFinite(sb) && oka) {
+          used = sb; why = sb + " MPa on " + b + " (no TDS number for " + a + ")"; rank = 2000 + used;
+        } else if (oka && okb) {
+          used = it.shear; why = "Listed for both; using primary " + it.shear + " MPa (" + it.shearSub + ")"; rank = 1000 + used;
+        } else {
+          return null;
+        }
+        return { item: it, used: used, why: why, rank: rank };
+      }).filter(Boolean).sort(function (x, y) { return y.rank - x.rank; });
+    }
+  };
+
+  var torq = {
+    // As from ISO 898-1 / ISO 724 (metric coarse). UNC As from ASME B1.1, converted to mm².
+    SIZES: [
+      { id: "M3", name: "M3 × 0.5", d: 3, as: 5.03, std: "iso" },
+      { id: "M4", name: "M4 × 0.7", d: 4, as: 8.78, std: "iso" },
+      { id: "M5", name: "M5 × 0.8", d: 5, as: 14.2, std: "iso" },
+      { id: "M6", name: "M6 × 1.0", d: 6, as: 20.1, std: "iso" },
+      { id: "M8", name: "M8 × 1.25", d: 8, as: 36.6, std: "iso" },
+      { id: "M10", name: "M10 × 1.5", d: 10, as: 58.0, std: "iso" },
+      { id: "M12", name: "M12 × 1.75", d: 12, as: 84.3, std: "iso" },
+      { id: "M14", name: "M14 × 2.0", d: 14, as: 115, std: "iso" },
+      { id: "M16", name: "M16 × 2.0", d: 16, as: 157, std: "iso" },
+      { id: "M18", name: "M18 × 2.5", d: 18, as: 192, std: "iso" },
+      { id: "M20", name: "M20 × 2.5", d: 20, as: 245, std: "iso" },
+      { id: "M22", name: "M22 × 2.5", d: 22, as: 303, std: "iso" },
+      { id: "M24", name: "M24 × 3.0", d: 24, as: 353, std: "iso" },
+      { id: "UNC14", name: "¼-20 UNC", d: 6.35, as: 20.5, std: "unc" },
+      { id: "UNC516", name: "⁵⁄₁₆-18 UNC", d: 7.9375, as: 33.8, std: "unc" },
+      { id: "UNC38", name: "⅜-16 UNC", d: 9.525, as: 50.0, std: "unc" },
+      { id: "UNC12", name: "½-13 UNC", d: 12.7, as: 91.5, std: "unc" }
+    ],
+    // ISO 898-1:2013 proof stress Sp, MPa. 8.8 is 580 MPa for d ≤ 16, 600 MPa for d > 16.
+    // A2-70 / A4-70: ISO 3506-1 0.2 % yield 450 MPa (not an ISO 898-1 proof stress).
+    proofMPa: function (grade, d) {
+      if (grade === "8.8") return d <= 16 ? 580 : 600;
+      if (grade === "10.9") return 830;
+      if (grade === "12.9") return 970;
+      if (grade === "A2-70" || grade === "A4-70") return 450;
+      return NaN;
+    },
+    proofLabel: function (grade) {
+      return (grade === "A2-70" || grade === "A4-70") ? "0.2 % yield (ISO 3506-1)" : "proof stress (ISO 898-1)";
+    },
+    compute: function (size, grade, K, pct, Ftarget_kN) {
+      var Sp = torq.proofMPa(grade, size.d);
+      var Fproof = size.as * Sp; // N
+      var Fdef = Fproof * pct / 100;
+      var F = (isFinite(Ftarget_kN) && Ftarget_kN > 0) ? Ftarget_kN * 1000 : Fdef;
+      var T = K * F * (size.d / 1000); // N·m
+      return { Sp: Sp, Fproof: Fproof, Fdef: Fdef, F: F, T: T, overProof: F > Fproof + 1e-6, usedTarget: isFinite(Ftarget_kN) && Ftarget_kN > 0 };
+    }
   };
 
   var gnss = {
@@ -457,7 +932,89 @@ var ET = (function () {
     }
   };
 
-  return { wire: wire, ident: ident, ohm: ohm, batt: batt, gnss: gnss, rf: rf, FT: FT };
+  var potting = {
+    // Typical / rough chemistry-class values, not product specifications.
+    DEFAULTS: [
+      { id: "epox-std", custom: false, name: "General-purpose epoxy", chem: "Unfilled rigid epoxy",
+        hard: "Shore D 80–90 (typ.)", k: "0.2–0.3 (typ. 0.25)", temp: "−40 to 130 °C typ. (often limited by Tg ≈ 80–130 °C)",
+        cure: "2K, room temperature or heat",
+        uses: "Transformers, coils, general electronics, connectors.",
+        notes: "Rigid, good chemical and fuel resistance. Cure shrink and CTE mismatch can stress fragile parts." },
+      { id: "epox-tc", custom: false, name: "Thermally conductive epoxy", chem: "Ceramic-filled epoxy",
+        hard: "Shore D 85–90 (typ.)", k: "0.8–1.5 typ. (some > 2)", temp: "−40 to 150 °C typ.",
+        cure: "2K, room temperature or heat",
+        uses: "Power electronics, LED drivers, DC-DC converters, modules that need a heat path.",
+        notes: "Fillers raise thermal conductivity and viscosity. Ceramic-filled grades stay electrically insulating; metal-filled grades may not." },
+      { id: "epox-flex", custom: false, name: "Toughened / semi-flexible epoxy", chem: "Toughened epoxy",
+        hard: "Shore D 40–70 (typ.)", k: "~0.25", temp: "−40 to 120 °C typ.",
+        cure: "2K",
+        uses: "Boards with larger components, some connectors, where a rigid epoxy would crack.",
+        notes: "Less brittle than standard epoxy, still stiffer than typical PU or silicone." },
+      { id: "pu-std", custom: false, name: "Polyurethane potting", chem: "Semi-flexible polyurethane",
+        hard: "Shore A 60–80, or D 30–50 (typ.)", k: "0.2–0.3 unfilled; filled 0.5–1", temp: "−40 to 105 °C typ. (some 120–130 °C)",
+        cure: "2K; isocyanate side often moisture-sensitive",
+        uses: "Automotive electronics, sensors, cable joints, vibration environments.",
+        notes: "Better shock and vibration than epoxy. Risk of hydrolysis in hot-wet service; check oil and fuel resistance on the TDS." },
+      { id: "pu-soft", custom: false, name: "Soft polyurethane", chem: "Soft PU / gel-like polyurethane",
+        hard: "Shore A 10–40, or Shore 00 (typ.)", k: "~0.2", temp: "−40 to 90 °C typ.",
+        cure: "2K",
+        uses: "Delicate assemblies and low-stress encapsulating; some rework possible.",
+        notes: "Low stress on components. Chemically weaker than rigid epoxy." },
+      { id: "pu-auto", custom: false, name: "Automotive electronics PU", chem: "Polyurethane (ECU / module class)",
+        hard: "Shore A 50–80 typ.", k: "0.2–0.8 typ.", temp: "−40 to 125 °C typ. (underhood grades vary)",
+        cure: "2K",
+        uses: "ECU / BCM-style modules, under-dash and milder underhood electronics.",
+        notes: "Typical automotive choice for vibration and thermal cycling. Confirm oil, fuel and hydrolysis ratings on the TDS. Typical values, not a named product." },
+      { id: "sil-add", custom: false, name: "Addition-cure silicone rubber", chem: "Platinum RTV silicone",
+        hard: "Shore A 20–50 typ.", k: "~0.2 unfilled", temp: "−50 to 200 °C typ.",
+        cure: "2K addition (platinum); no cure byproduct",
+        uses: "Underhood electronics, sensors, LED, high-temperature assemblies.",
+        notes: "Excellent high-temperature flexibility. Cure is inhibited by sulphur, tin soaps, amines and some rubbers. A primer is often needed for adhesion." },
+      { id: "sil-cond", custom: false, name: "Condensation-cure silicone", chem: "Tin-cure / moisture RTV silicone",
+        hard: "Shore A 20–50 typ.", k: "~0.2", temp: "−50 to 180 °C typ.",
+        cure: "1K or 2K condensation (alcohol byproduct)",
+        uses: "General sealing and potting where addition-cure inhibition is a risk; shallower sections.",
+        notes: "The alcohol byproduct can corrode or bubble in deep or sealed sections. 1K tubes are common." },
+      { id: "sil-gel", custom: false, name: "Silicone gel", chem: "Soft silicone gel",
+        hard: "Shore 00 20–50 typ.", k: "~0.2 (filled 0.4–1)", temp: "−50 to 180–200 °C typ.",
+        cure: "2K addition",
+        uses: "Bare die, wire-bond protection, fragile sensors.",
+        notes: "Very low stress; not structural. Optical / transparent grades exist." },
+      { id: "sil-tc", custom: false, name: "Thermally conductive silicone", chem: "Filled silicone rubber",
+        hard: "Shore A 20–70 typ.", k: "0.8–2 typ. (some higher)", temp: "−45 to 200 °C typ.",
+        cure: "2K addition (sometimes 1K)",
+        uses: "Power modules, ECU, LED, potting that must also spread heat.",
+        notes: "Combines the silicone temperature range with a better heat path. Usually still electrically insulating if ceramic-filled." },
+      { id: "sil-auto", custom: false, name: "Automotive high-temp silicone", chem: "Silicone (coils / underhood class)",
+        hard: "Shore A 30–60 typ.", k: "0.2–1 typ.", temp: "−40 to 180–200 °C typ.",
+        cure: "2K addition typ.",
+        uses: "Ignition coils, underhood sensors and electronics where PU or epoxy temperature is not enough.",
+        notes: "Typical chemistry-class choice for high underhood temperature. Confirm oil resistance on the TDS. Typical values, not a named product." }
+    ]
+  };
+
+  var strain = {
+    MATS: [
+      { id: "steel", name: "Steel", E: 200, nu: 0.30 },
+      { id: "alu", name: "Aluminium", E: 69, nu: 0.33 },
+      { id: "ti", name: "Titanium", E: 114, nu: 0.32 },
+      { id: "custom", name: "Custom", E: 200, nu: 0.30 }
+    ],
+    // Vo/Vex per unit strain (linear).
+    gain: function (cfg, gf) {
+      if (cfg === "quarter") return gf / 4;
+      if (cfg === "half") return gf / 2;
+      return gf; // full bending or torque full-bridge
+    },
+    exactQuarter: function (gf, eps) { return (gf * eps) / (4 + 2 * gf * eps); },
+    cantilever: function (F, L, E, b, h) { return 6 * F * L / (E * b * h * h); },
+    axial: function (F, A, E) { return F / (A * E); },
+    torque: function (T, d, E, nu) { return 16 * T * (1 + nu) / (Math.PI * E * d * d * d); },
+    fromStress: function (sigma, E) { return sigma / E; },
+    fromShear: function (tau, E, nu) { return tau * (1 + nu) / E; }
+  };
+
+  return { wire: wire, ident: ident, ohm: ohm, batt: batt, div: div, rc: rc, adh: adh, torq: torq, potting: potting, strain: strain, gnss: gnss, rf: rf, FT: FT };
 })();
 if (typeof module !== "undefined") module.exports = ET;
 </script>
@@ -651,14 +1208,20 @@ if (typeof module !== "undefined") module.exports = ET;
 
   /* ---------- Battery ---------- */
   var bLast = "Ah";
-  $("bChem").addEventListener("change", function () { $("bUse").value = ET.batt.USABLE[$("bChem").value]; battCalc(); });
+  function applyBattPreset() {
+    var p = ET.batt.PRESETS[$("bChem").value] || ET.batt.PRESETS.custom;
+    $("bUse").value = ET.batt.USABLE[$("bChem").value];
+    $("bDiscC").value = p.discC; $("bPeakC").value = p.peakC; $("bChgC").value = p.chgC;
+    $("bIRm").value = p.ir_mohm; $("bWhkg").value = p.whkg; $("bWhL").value = p.whl;
+  }
+  $("bChem").addEventListener("change", function () { applyBattPreset(); battCalc(); });
   $("bAh").addEventListener("input", function () { bLast = "Ah"; battCalc(); });
   $("bKwh").addEventListener("input", function () { bLast = "kWh"; battCalc(); });
   ["bUse", "bV"].forEach(function (id) { $(id).addEventListener("input", battCalc); });
   var cLast = "A";
   $("cA").addEventListener("input", function () { cLast = "A"; battCalc(); });
   $("cC").addEventListener("input", function () { cLast = "C"; battCalc(); });
-  ["pV", "pAh", "pS", "pP", "rLoad", "rUnit", "gA", "gEff"].forEach(function (id) { $(id).addEventListener("input", battCalc); $(id).addEventListener("change", battCalc); });
+  ["pV", "pAh", "pS", "pP", "rLoad", "rUnit", "gA", "gEff", "bDiscC", "bPeakC", "bChgC", "bIRm", "bIRI", "bWhkg", "bWhL"].forEach(function (id) { $(id).addEventListener("input", battCalc); $(id).addEventListener("change", battCalc); });
   $("pUse").onclick = function () {
     var p = ET.batt.pack(num("pV"), num("pAh"), num("pS"), num("pP"));
     if (isFinite(p.V) && isFinite(p.Ah)) { $("bV").value = +p.V.toFixed(3); $("bAh").value = +p.Ah.toFixed(3); bLast = "Ah"; battCalc(); }
@@ -704,6 +1267,65 @@ if (typeof module !== "undefined") module.exports = ET;
       $("gBig").textContent = hm(ch);
       $("gSub").textContent = sig(e.usableAh, 5) + " Ah ÷ (" + sig(gA, 4) + " A × " + eff + " %) = " + sig(ch, 4) + " h; charge rate " + sig(gA / Ah, 3) + " C";
     } else { $("gBig").textContent = "Charger A > 0, efficiency 1–100 %"; $("gSub").textContent = ""; }
+    // Current limits
+    var discC = num("bDiscC"), peakC = num("bPeakC"), chgC = num("bChgC");
+    var warns = [];
+    if (Ah > 0 && discC >= 0 && peakC >= 0 && chgC >= 0) {
+      var Icont = discC * Ah, Ipeak = peakC * Ah, Ichg = chgC * Ah;
+      $("bLimBig").textContent = sig(Icont, 4) + " A cont. · " + sig(Ipeak, 4) + " A peak";
+      kv($("bLimKv"), [
+        ["Continuous discharge", sig(Icont, 4) + " A (" + sig(discC, 3) + " C)"],
+        ["Peak discharge", sig(Ipeak, 4) + " A (" + sig(peakC, 3) + " C)"],
+        ["Charge current", sig(Ichg, 4) + " A (" + sig(chgC, 3) + " C)"]
+      ]);
+      var loadA = (e && load > 0 && ru === "A") ? load : (e && load > 0 && ru === "W" && V > 0 ? load / V : NaN);
+      var curA = num("cA");
+      function over(label, I, lim, kind) {
+        if (!(I > 0 && lim >= 0)) return;
+        if (I > lim) warns.push(label + " " + sig(I, 3) + " A exceeds " + kind + " " + sig(lim, 3) + " A.");
+      }
+      over("C-rate current", curA, Icont, "continuous");
+      over("C-rate current", curA, Ipeak, "peak");
+      over("Runtime load", loadA, Icont, "continuous");
+      over("Runtime load", loadA, Ipeak, "peak");
+      over("Charger current", gA, Ichg, "max charge");
+      $("bLimNote").textContent = warns.length ? warns.join(" ") : "Load and charger currents are within these typical limits.";
+      $("bLimNote").className = "note" + (warns.length ? " warn" : "");
+      $("bLimRes").className = "result" + (warns.length ? " bad" : " ok");
+    } else {
+      $("bLimBig").textContent = "Set a capacity and C-rate limits ≥ 0";
+      kv($("bLimKv"), []); $("bLimNote").textContent = "";
+      $("bLimRes").className = "result";
+    }
+    // IR drop
+    var S = num("pS"), P = num("pP"), irm = num("bIRm"), Ir = num("bIRI");
+    if (irm >= 0 && Ir >= 0 && S >= 1 && P >= 1) {
+      var Voc = num("pV") > 0 && S >= 1 ? num("pV") * S : (V > 0 ? V : NaN);
+      var Rpack = ET.batt.packIR(irm, S, P);
+      var ir = ET.batt.irdrop(Ir, Rpack, isFinite(Voc) ? Voc : 0);
+      $("bIRBig").textContent = (ir.vd >= 1 ? fmt(ir.vd, 2) + " V" : fmt(ir.vd * 1000, 1) + " mV") + " drop · " + sig(ir.heat, 3) + " W heat";
+      kv($("bIRKv"), [
+        ["Pack IR", sig(Rpack * 1000, 4) + " mΩ  (" + S + "S" + P + "P)"],
+        ["Loaded voltage", isFinite(Voc) ? fmt(ir.vload, 3) + " V  (open " + fmt(Voc, 3) + " V)" : "Set cell or pack voltage"],
+        ["Heat I²R", sig(ir.heat, 4) + " W"]
+      ]);
+      $("bIRRes").className = "result" + (isFinite(Voc) && ir.vload <= 0 ? " bad" : " ok");
+    } else {
+      $("bIRBig").textContent = "Cell IR, current, S and P ≥ 0 (S, P ≥ 1)";
+      kv($("bIRKv"), []); $("bIRRes").className = "result";
+    }
+    // Energy density
+    var whkg = num("bWhkg"), whl = num("bWhL");
+    var whName = e ? e.wh : (V > 0 && Ah > 0 ? V * Ah : NaN);
+    if (whName > 0 && whkg > 0 && whl > 0) {
+      var mass = whName / whkg, vol = whName / whl;
+      $("bDenBig").textContent = sig(mass, 4) + " kg · " + sig(vol, 4) + " L";
+      kv($("bDenKv"), [["Nameplate energy", sig(whName, 5) + " Wh"], ["Mass @ " + sig(whkg, 4) + " Wh/kg", sig(mass, 4) + " kg"], ["Volume @ " + sig(whl, 4) + " Wh/L", sig(vol, 4) + " L"]]);
+      $("bDenRes").className = "result ok";
+    } else {
+      $("bDenBig").textContent = "Need pack energy and Wh/kg, Wh/L > 0";
+      kv($("bDenKv"), []); $("bDenRes").className = "result";
+    }
   }
 
   /* ---------- GNSS ---------- */
@@ -781,7 +1403,491 @@ if (typeof module !== "undefined") module.exports = ET;
   }
   ["fF", "fU", "fVF", "lD", "lF", "sS"].forEach(function (id) { $(id).addEventListener("input", rfCalc); $(id).addEventListener("change", rfCalc); });
 
-  function all() { wireCalc(); identDraw(); identEnc(); ohmCalc(); battCalc(); hav(); nmea(); rfCalc(); }
+
+  /* ---------- Divider ---------- */
+  var DF = { Vin: "dVin", R1: "dR1", R2: "dR2", Vout: "dVout" }, dOrder = ["Vin", "R1", "R2"];
+  function divCalc() {
+    var known = {}, missing = [];
+    Object.keys(DF).forEach(function (k) {
+      var v = num(DF[k]);
+      if (isFinite(v) && $(DF[k]).value !== "") known[k] = v;
+      else missing.push(k);
+      $(DF[k]).classList.remove("calc");
+    });
+    var unknown;
+    if (missing.length === 1) unknown = missing[0];
+    else if (missing.length === 0) {
+      unknown = null;
+      for (var i = 0; i < dOrder.length; i++) { if (dOrder.indexOf(Object.keys(DF).filter(function (k) { return true; })[i]) < 0) { /* noop */ } }
+      // The field least recently edited is recalculated.
+      var all = Object.keys(DF);
+      unknown = all.filter(function (k) { return dOrder.indexOf(k) < 0; })[0] || all[0];
+      // Prefer the one not in the last 3 edits
+      var last3 = dOrder.slice(-3);
+      if (last3.length === 3) unknown = all.filter(function (k) { return last3.indexOf(k) < 0; })[0] || unknown;
+    } else {
+      $("dRes").className = "result"; $("dBig").textContent = "Enter any three of Vin, R1, R2, Vout"; kv($("dKv"), []);
+      return;
+    }
+    try {
+      var s = ET.div.solve(known, unknown);
+      $(DF[unknown]).value = +sig(s[unknown], 6);
+      $(DF[unknown]).classList.add("calc");
+      $("dRes").className = "result ok";
+      $("dBig").textContent = sig(s.Vout, 4) + " V out";
+      kv($("dKv"), [
+        ["Vout", sig(s.Vout, 5) + " V"],
+        ["Current", sig(s.I * 1000, 4) + " mA"],
+        ["Power in R1", sig(s.P1 * 1000, 4) + " mW"],
+        ["Power in R2", sig(s.P2 * 1000, 4) + " mW"],
+        ["Ratio R2 / (R1+R2)", sig(s.R2 / (s.R1 + s.R2), 4)]
+      ]);
+    } catch (e) {
+      $("dRes").className = "result bad"; $("dBig").textContent = e.message; kv($("dKv"), []);
+    }
+  }
+  Object.keys(DF).forEach(function (k) {
+    $(DF[k]).addEventListener("input", function () {
+      dOrder = dOrder.filter(function (x) { return x !== k; });
+      if ($(DF[k]).value !== "") dOrder.push(k);
+      if (dOrder.length > 3) dOrder = dOrder.slice(-3);
+      divCalc();
+    });
+  });
+
+  /* ---------- RC ---------- */
+  function rcFmtTau(s) {
+    if (s >= 1) return sig(s, 4) + " s";
+    if (s >= 1e-3) return sig(s * 1e3, 4) + " ms";
+    if (s >= 1e-6) return sig(s * 1e6, 4) + " µs";
+    return sig(s * 1e9, 4) + " ns";
+  }
+  function rcFmtF(f) {
+    if (f >= 1e6) return sig(f / 1e6, 4) + " MHz";
+    if (f >= 1e3) return sig(f / 1e3, 4) + " kHz";
+    return sig(f, 4) + " Hz";
+  }
+  function rcFmtE(j) {
+    if (j >= 1) return sig(j, 4) + " J";
+    if (j >= 1e-3) return sig(j * 1e3, 4) + " mJ";
+    if (j >= 1e-6) return sig(j * 1e6, 4) + " µJ";
+    return sig(j * 1e9, 4) + " nJ";
+  }
+  function rcCalc() {
+    var R = num("rcR") * parseFloat($("rcRu").value), C = num("rcC") * parseFloat($("rcCu").value), V = num("rcV");
+    if (!(R > 0 && C > 0)) { $("rcRes").className = "result bad"; $("rcBig").textContent = "Enter R > 0 and C > 0"; kv($("rcKv"), []); return; }
+    var tau = ET.rc.tau(R, C), fc = ET.rc.fc(R, C), E = V > 0 ? ET.rc.energy(C, V) : NaN;
+    $("rcRes").className = "result ok";
+    $("rcBig").textContent = "τ " + rcFmtTau(tau) + " · fᶜ " + rcFmtF(fc);
+    // Use "fc" in text without superscript issues in some fonts — already used fᶜ; better "fc"
+    $("rcBig").textContent = "τ " + rcFmtTau(tau) + " · fc " + rcFmtF(fc);
+    kv($("rcKv"), [
+      ["Time constant τ", rcFmtTau(tau)],
+      ["Cutoff fc", rcFmtF(fc) + "  (" + sig(fc, 5) + " Hz)"],
+      ["Energy ½CV²", V > 0 ? rcFmtE(E) : "Enter V > 0"]
+    ]);
+  }
+  ["rcR", "rcRu", "rcC", "rcCu", "rcV"].forEach(function (id) { $(id).addEventListener("input", rcCalc); $(id).addEventListener("change", rcCalc); });
+
+  /* ---------- Adhesives ---------- */
+  var aLock = false;
+  function aFillSelects() {
+    $("aPick").innerHTML = '<option value="">Custom / no fill</option>' + ET.adh.ITEMS.map(function (it) {
+      return '<option value="' + it.id + '">' + it.name + " — " + it.shear + " MPa</option>";
+    }).join("");
+    var opts = ET.adh.SUBS.map(function (s) { return '<option value="' + s.id + '">' + s.name + "</option>"; }).join("");
+    $("aSubA").innerHTML = opts; $("aSubB").innerHTML = opts;
+    $("aSubA").value = "aluminium"; $("aSubB").value = "steel";
+    $("aMat").innerHTML = ET.adh.MATS.map(function (m) { return '<option value="' + m.id + '">' + m.name + "</option>"; }).join("");
+  }
+  function aAreaMm2() {
+    var unit = $("aUnit").value, toMm = unit === "in" ? 25.4 : 1, toMm2 = toMm * toMm;
+    if ($("aMode").value === "area") {
+      var A = num("aA");
+      return A > 0 ? A * toMm2 : NaN;
+    }
+    var L = num("aL"), W = num("aW");
+    return L > 0 && W > 0 ? L * W * toMm2 : NaN;
+  }
+  function aModeUI() {
+    var lw = $("aMode").value === "lw";
+    $("aLW").hidden = $("aWW").hidden = !lw;
+    $("aAW").hidden = lw;
+  }
+  function aApply(id, shearOverride) {
+    var it = ET.adh.byId(id);
+    if (!it) { $("aPickNote").textContent = ""; return; }
+    aLock = true;
+    $("aPick").value = id;
+    $("aShear").value = isFinite(shearOverride) ? shearOverride : it.shear;
+    aLock = false;
+    $("aPickNote").textContent = it.name + " — " + (isFinite(shearOverride) ? shearOverride + " MPa (pair-specific)" : it.shear + " MPa on " + it.shearSub) + ". Overridable.";
+    aShow(it);
+    aForce();
+  }
+  function aShow(it) {
+    if (!it) { $("aDet").innerHTML = '<div class="sub">Tap an adhesive in the library or suggester for details.</div>'; return; }
+    $("aDet").innerHTML = '<div class="big first" style="font-size:1.2rem">' + esc(it.name) + '</div><div class="sub">' + esc(it.type) + '</div>' +
+      '<dl class="kv" style="margin-top:8px">' + [
+        ["Typical shear", it.shear + " MPa  (" + it.shearSub + ")"],
+        ["Working time", it.work],
+        ["Fixture", it.fixture],
+        ["Full cure", it.cure],
+        ["Temperature", it.temp],
+        ["Source", it.source]
+      ].map(function (p) { return "<dt>" + esc(p[0]) + "</dt><dd>" + esc(p[1]) + "</dd>"; }).join("") + "</dl>" +
+      '<p class="note" style="margin:8px 0 0">' + esc(it.notes) + "</p>";
+  }
+  function aForce() {
+    aModeUI();
+    var area = aAreaMm2(), mpa = num("aShear"), sf = num("aSF");
+    if (!(area > 0 && mpa > 0 && sf > 0)) {
+      $("aFRes").className = "result bad"; $("aFBig").textContent = "Area, shear and safety factor must be > 0"; kv($("aFKv"), []); return;
+    }
+    var N = ET.adh.forceN(area, mpa, sf), kgf = N / 9.80665, lbf = N / 4.44822161526;
+    $("aFRes").className = "result ok";
+    $("aFBig").textContent = sig(N, 4) + " N";
+    kv($("aFKv"), [
+      ["Force", sig(N, 5) + " N  ·  " + sig(kgf, 4) + " kgf  ·  " + sig(lbf, 4) + " lbf"],
+      ["Bond area", sig(area, 4) + " mm²"],
+      ["Shear used", sig(mpa, 3) + " MPa  /  SF " + sig(sf, 3)]
+    ]);
+  }
+  function aSuggest() {
+    var a = $("aSubA").value, b = $("aSubB").value;
+    var rows = ET.adh.suggest(a, b);
+    var names = {}; ET.adh.SUBS.forEach(function (s) { names[s.id] = s.name; });
+    if (!rows.length) { $("aSug").innerHTML = '<p class="note">No library adhesive lists both of these substrates on its TDS (PBT in particular is rarely quoted). Consider a primer (Loctite SF 770 under a CA for PP/PE) or a test joint.</p>'; return; }
+    $("aSug").innerHTML = rows.map(function (r, i) {
+      return '<button type="button" data-adh="' + r.item.id + '" data-used="' + r.used + '"><strong>' + (i + 1) + ". " + esc(r.item.name) + "</strong>" +
+        '<span class="badge">' + r.used + " MPa</span>" +
+        '<span class="meta">' + esc(r.item.type) + " · fixture " + esc(r.item.fixture) + " · full cure " + esc(r.item.cure) + "<br>" + esc(r.why) + "</span></button>";
+    }).join("");
+    if ((a === "lse" || b === "lse") && !rows.some(function (r) { return r.item.id === "dp8005"; })) { /* always included if ok */ }
+    if (a === "lse" || b === "lse") {
+      $("aSug").innerHTML += '<p class="note">Loctite SF 770 is a primer (not an adhesive) that prepares PP, PE and PTFE for Loctite 406 / 401 / 454. TDS: PP + 406 with 770, 15 MPa block shear (ISO 13445, 24 h @ 23 °C).</p>';
+    }
+  }
+  function aLibDraw() {
+    $("aLib").innerHTML = ET.adh.ITEMS.map(function (it) {
+      return '<button type="button" data-adh="' + it.id + '"><strong>' + esc(it.name) + "</strong>" +
+        '<span class="badge">' + it.shear + " MPa</span>" +
+        '<span class="meta">' + esc(it.type) + " · " + esc(it.shearSub) + "</span></button>";
+    }).join("");
+  }
+  function aMatDraw() {
+    var m = ET.adh.matById($("aMat").value);
+    if (!m) { $("aMatDet").innerHTML = ""; return; }
+    $("aMatDet").innerHTML = '<div class="big first" style="font-size:1.2rem">' + esc(m.name) + "</div>" +
+      '<dl class="kv" style="margin-top:8px">' + [
+        ["CTE", m.cte],
+        ["Max service (typical)", m.tmax],
+        ["Surface prep", m.prep]
+      ].map(function (p) { return "<dt>" + esc(p[0]) + "</dt><dd>" + esc(p[1]) + "</dd>"; }).join("") + "</dl>";
+  }
+  aFillSelects(); aLibDraw(); aShow(null); aSuggest(); aMatDraw();
+  $("aPick").addEventListener("change", function () { if ($("aPick").value) aApply($("aPick").value); else { $("aPickNote").textContent = ""; aForce(); } });
+  $("aShear").addEventListener("input", function () { if (!aLock) $("aPickNote").textContent = ($("aPickNote").textContent || "").replace(/Overridable\.$/, "Overridden."); aForce(); });
+  ["aMode", "aUnit", "aL", "aW", "aA", "aSF"].forEach(function (id) { $(id).addEventListener("input", aForce); $(id).addEventListener("change", aForce); });
+  $("aUnit").addEventListener("change", function () {
+    // Convert visible dimensions when the unit is switched.
+    var toIn = $("aUnit").value === "in";
+    function conv(id, lin) {
+      var v = num(id);
+      if (!isFinite(v)) return;
+      $(id).value = lin ? +(toIn ? v / 25.4 : v * 25.4).toFixed(3) : +(toIn ? v / 645.16 : v * 645.16).toFixed(3);
+    }
+    // previous unit is the opposite of current; we convert from the other unit
+    conv("aL", true); conv("aW", true); conv("aA", false);
+    aForce();
+  });
+  // The change handler above converts assuming previous was the other unit — but it also fires after we may have set value. OK on user toggle only.
+  $("aSubA").addEventListener("change", aSuggest); $("aSubB").addEventListener("change", aSuggest);
+  $("aMat").addEventListener("change", aMatDraw);
+  $("aSug").addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-adh]");
+    if (!b) return;
+    aApply(b.getAttribute("data-adh"), parseFloat(b.getAttribute("data-used")));
+  });
+  $("aLib").addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-adh]");
+    if (!b) return;
+    aApply(b.getAttribute("data-adh"));
+  });
+
+  /* ---------- Torque ---------- */
+  $("tSize").innerHTML = ET.torq.SIZES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === "M8" ? " selected" : "") + ">" + s.name + "</option>"; }).join("");
+  function tSyncK() {
+    var v = $("tLub").value;
+    if (v !== "custom") $("tK").value = v;
+  }
+  function tCalc() {
+    var size = null, id = $("tSize").value;
+    ET.torq.SIZES.forEach(function (s) { if (s.id === id) size = s; });
+    var grade = $("tGrade").value, K = num("tK"), pct = num("tPct"), Ft = num("tF");
+    if ($("tF").value === "") Ft = NaN;
+    if (!size || !(K > 0) || !(pct > 0)) {
+      $("tRes").className = "result bad"; $("tBig").textContent = "Set size, K > 0 and % proof > 0"; kv($("tKv"), []); $("tNote").textContent = ""; return;
+    }
+    var r = ET.torq.compute(size, grade, K, pct, Ft);
+    var lbfFt = r.T * 0.737562149;
+    $("tRes").className = "result" + (r.overProof ? " bad" : " ok");
+    $("tBig").textContent = sig(r.T, 4) + " N·m  ·  " + sig(lbfFt, 4) + " lbf·ft";
+    kv($("tKv"), [
+      ["Stress area As", sig(size.as, 4) + " mm²"],
+      [ET.torq.proofLabel(grade), r.Sp + " MPa"],
+      ["Proof load", sig(r.Fproof / 1000, 4) + " kN"],
+      ["Preload used", sig(r.F / 1000, 4) + " kN" + (r.usedTarget ? " (target clamp)" : " (" + sig(pct, 3) + " % of proof)")],
+      ["K × F × d", "K " + sig(K, 3) + " × " + sig(r.F, 4) + " N × " + sig(size.d / 1000, 5) + " m"]
+    ]);
+    var notes = [];
+    if (r.overProof) notes.push("Warning: the target clamp force is above the proof load (" + sig(r.Fproof / 1000, 4) + " kN). Reduce the target or choose a larger / higher-grade fastener.");
+    else if (r.usedTarget && r.F > r.Fdef) notes.push("Target is above the default " + sig(pct, 3) + " % of proof (" + sig(r.Fdef / 1000, 4) + " kN).");
+    if (size.std === "unc") notes.push("UNC stress area is ASME B1.1; the grade is an ISO property class applied to that area for illustration. Use the SAE / drawing grade and the manufacturer’s torque.");
+    notes.push("Use the torque from the drawing or manufacturer when one is given.");
+    $("tNote").textContent = notes.join(" ");
+  }
+  $("tLub").addEventListener("change", function () { tSyncK(); tCalc(); });
+  $("tK").addEventListener("input", function () { $("tLub").value = "custom"; tCalc(); });
+  ["tSize", "tGrade", "tPct", "tF"].forEach(function (id) { $(id).addEventListener("input", tCalc); $(id).addEventListener("change", tCalc); });
+
+
+  /* ---------- Potting materials ---------- */
+  var POT_KEY = "et-potting";
+  var potList = [];
+  var potSel = null;
+  function potLoad() {
+    potList = ET.potting.DEFAULTS.map(function (x) { return Object.assign({}, x); });
+    try {
+      var raw = localStorage.getItem(POT_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (!saved || !saved.items || !saved.items.length) return;
+      var byId = {};
+      saved.items.forEach(function (it) { byId[it.id] = it; });
+      potList = potList.map(function (d) { return byId[d.id] ? Object.assign({}, d, byId[d.id], { custom: false, id: d.id }) : d; });
+      saved.items.forEach(function (it) {
+        if (it.custom && !potList.some(function (p) { return p.id === it.id; })) potList.push(it);
+      });
+    } catch (e) {}
+  }
+  function potSave() {
+    try { localStorage.setItem(POT_KEY, JSON.stringify({ items: potList })); } catch (e) {}
+  }
+  function potById(id) { for (var i = 0; i < potList.length; i++) if (potList[i].id === id) return potList[i]; return null; }
+  function potPaintList(id) {
+    $("potPick").innerHTML = potList.map(function (it) {
+      return '<option value="' + it.id + '">' + (it.custom ? "Custom: " : "") + esc(it.name) + "</option>";
+    }).join("");
+    $("potLib").innerHTML = potList.map(function (it) {
+      return '<button type="button" data-pot="' + it.id + '"' + (it.id === id ? ' class="on"' : "") + "><strong>" + esc(it.name) + "</strong>" +
+        (it.custom ? '<span class="badge">custom</span>' : "") +
+        '<span class="meta">' + esc(it.chem) + " · " + esc(it.hard) + " · " + esc(it.k) + " W/m·K · " + esc(it.temp) + "</span></button>";
+    }).join("");
+    if (id && potById(id)) $("potPick").value = id;
+  }
+  function potRefresh(keepId) {
+    var id = keepId || potSel || (potList[0] && potList[0].id);
+    potPaintList(id);
+    if (id && potById(id)) potShow(id, false);
+  }
+  function potShow(id, fromForm) {
+    var it = potById(id);
+    if (!it) return;
+    potSel = id;
+    if (!fromForm) {
+      $("potName").value = it.name; $("potChem").value = it.chem; $("potHard").value = it.hard;
+      $("potK").value = it.k; $("potTemp").value = it.temp; $("potCure").value = it.cure;
+      $("potUses").value = it.uses; $("potNotes").value = it.notes;
+    }
+    $("potDel").disabled = !it.custom;
+    [].forEach.call($("potLib").querySelectorAll("[data-pot]"), function (b) { b.classList.toggle("on", b.getAttribute("data-pot") === id); });
+  }
+  function potWrite() {
+    var it = potById(potSel);
+    if (!it) return;
+    it.name = $("potName").value; it.chem = $("potChem").value; it.hard = $("potHard").value;
+    it.k = $("potK").value; it.temp = $("potTemp").value; it.cure = $("potCure").value;
+    it.uses = $("potUses").value; it.notes = $("potNotes").value;
+    potSave(); potPaintList(potSel); potShow(potSel, true);
+  }
+  potLoad(); potRefresh();
+  $("potPick").addEventListener("change", function () { potShow($("potPick").value, false); potRefresh(potSel); });
+  $("potLib").addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-pot]");
+    if (b) { potShow(b.getAttribute("data-pot"), false); $("potPick").value = potSel; potRefresh(potSel); }
+  });
+  ["potName","potChem","potHard","potK","potTemp","potCure","potUses","potNotes"].forEach(function (id) {
+    $(id).addEventListener("input", potWrite);
+  });
+  $("potAdd").onclick = function () {
+    var id = "c-" + Date.now();
+    potList.push({ id: id, custom: true, name: "Custom potting", chem: "", hard: "", k: "", temp: "", cure: "", uses: "", notes: "" });
+    potSave(); potRefresh(id);
+  };
+  $("potDup").onclick = function () {
+    var src = potById(potSel);
+    if (!src) return;
+    var id = "c-" + Date.now();
+    var copy = Object.assign({}, src, { id: id, custom: true, name: src.name + " (copy)" });
+    potList.push(copy); potSave(); potRefresh(id);
+  };
+  $("potDel").onclick = function () {
+    var it = potById(potSel);
+    if (!it || !it.custom) return;
+    potList = potList.filter(function (p) { return p.id !== it.id; });
+    potSave(); potRefresh(potList[0] && potList[0].id);
+  };
+  $("potReset").onclick = function () {
+    try { localStorage.removeItem(POT_KEY); } catch (e) {}
+    potLoad(); potRefresh();
+  };
+
+  /* ---------- Strain gauge ---------- */
+  $("sgMat").innerHTML = ET.strain.MATS.map(function (m) { return '<option value="' + m.id + '">' + m.name + "</option>"; }).join("");
+  function sgApplyMat() {
+    var m = ET.strain.MATS.filter(function (x) { return x.id === $("sgMat").value; })[0];
+    if (m && m.id !== "custom") { $("sgE").value = m.E; $("sgNu").value = m.nu; }
+  }
+  function sgApplyPreset() {
+    var p = $("sgPreset").value;
+    if (p === "foil2") $("sgGF").value = "2.0";
+    if (p === "foil21") $("sgGF").value = "2.05";
+  }
+  function sgUI() {
+    var cfg = $("sgCfg").value, mode = $("sgMode").value;
+    $("sgStrainBox").hidden = mode !== "strain";
+    $("sgStressBox").hidden = mode !== "stress";
+    $("sgGeomBox").hidden = mode !== "geom";
+    $("sgExactLab").style.display = $("sgExactNote").style.display = cfg === "quarter" ? "" : "none";
+    $("sgStressL").textContent = cfg === "torque" ? "Shear stress τ (MPa)" : "Axial stress (MPa)";
+    if (mode === "geom") {
+      // If the user just switched to torque and geom is still a beam, snap to shaft.
+      if (cfg === "torque" && $("sgGeom").value !== "shaft") $("sgGeom").value = "shaft";
+      if (cfg !== "torque" && $("sgGeom").value === "shaft") $("sgGeom").value = "cantilever";
+      var g = $("sgGeom").value;
+      var shaft = g === "shaft", cant = g === "cantilever", axial = g === "axial";
+      var round = axial && $("sgAx").value === "round";
+      $("sgFbox").hidden = shaft;
+      $("sgTbox").hidden = !shaft;
+      $("sgLbox").hidden = !cant;
+      $("sgBbox").hidden = !(cant || (axial && !round));
+      $("sgHbox").hidden = !(cant || (axial && !round));
+      $("sgDbox").hidden = !(shaft || round);
+      $("sgAbox").hidden = !axial;
+    }
+  }
+  function sgCalc() {
+    sgUI();
+    var cfg = $("sgCfg").value, gf = num("sgGF"), vex = num("sgVex"), E_gpa = num("sgE"), nu = num("sgNu");
+    var E = E_gpa * 1e9;
+    var res = $("sgRes");
+    if (!(gf > 0) || !(vex > 0)) { res.className = "result bad"; $("sgBig").textContent = "GF and excitation must be > 0"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+    var mode = $("sgMode").value, eps, how = "";
+    if (mode === "strain") {
+      var ue = num("sgEps");
+      if (!isFinite(ue)) { res.className = "result bad"; $("sgBig").textContent = "Enter strain in µε"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+      eps = ue * 1e-6;
+      how = sig(ue, 4) + " µε (entered)";
+    } else if (mode === "stress") {
+      if (!(E > 0)) { res.className = "result bad"; $("sgBig").textContent = "E must be > 0"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+      var MPa = num("sgStress");
+      if (!isFinite(MPa)) { res.className = "result bad"; $("sgBig").textContent = "Enter stress"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+      var pa = MPa * 1e6;
+      if (cfg === "torque") {
+        if (!(nu >= 0)) { res.className = "result bad"; $("sgBig").textContent = "Enter Poisson’s ratio ν"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+        eps = ET.strain.fromShear(pa, E, nu);
+        how = "τ " + sig(MPa, 4) + " MPa → ε = τ(1+ν)/E = " + sig(eps * 1e6, 4) + " µε";
+      } else {
+        eps = ET.strain.fromStress(pa, E);
+        how = "σ " + sig(MPa, 4) + " MPa → ε = σ/E = " + sig(eps * 1e6, 4) + " µε";
+      }
+    } else {
+      if (!(E > 0)) { res.className = "result bad"; $("sgBig").textContent = "E must be > 0"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+      var g = $("sgGeom").value;
+      if (g === "cantilever") {
+        var F = num("sgF"), L = num("sgLen") / 1000, b = num("sgB") / 1000, h = num("sgH") / 1000;
+        if (!(F > 0 || F === 0) || !(L > 0 && b > 0 && h > 0) || !isFinite(F)) { res.className = "result bad"; $("sgBig").textContent = "Enter F, and L, b, h > 0"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+        eps = ET.strain.cantilever(F, L, E, b, h);
+        how = "Cantilever ε = 6FL/(E b h²) = " + sig(eps * 1e6, 4) + " µε";
+      } else if (g === "axial") {
+        var F2 = num("sgF"), A;
+        if ($("sgAx").value === "round") {
+          var dA = num("sgD") / 1000;
+          if (!(dA > 0)) { res.className = "result bad"; $("sgBig").textContent = "Enter d > 0"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+          A = Math.PI * dA * dA / 4;
+        } else {
+          var bb = num("sgB") / 1000, hh = num("sgH") / 1000;
+          if (!(bb > 0 && hh > 0)) { res.className = "result bad"; $("sgBig").textContent = "Enter b and h > 0"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+          A = bb * hh;
+        }
+        if (!isFinite(F2)) { res.className = "result bad"; $("sgBig").textContent = "Enter F"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+        eps = ET.strain.axial(F2, A, E);
+        how = "Axial ε = F/(A E) = " + sig(eps * 1e6, 4) + " µε  (A = " + sig(A * 1e6, 4) + " mm²)";
+      } else {
+        var T = num("sgTq"), d = num("sgD") / 1000;
+        if (!isFinite(T) || !(d > 0) || !(nu >= 0)) { res.className = "result bad"; $("sgBig").textContent = "Enter T, d > 0 and ν"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+        eps = ET.strain.torque(T, d, E, nu);
+        how = "Shaft ε = 16T(1+ν)/(π E d³) = " + sig(eps * 1e6, 4) + " µε";
+      }
+    }
+    if (!isFinite(eps)) { res.className = "result bad"; $("sgBig").textContent = "Could not compute strain"; kv($("sgKv"), []); $("sgForm").textContent = ""; return; }
+    var exact = cfg === "quarter" && $("sgExact").checked;
+    var ratio = exact ? ET.strain.exactQuarter(gf, eps) : ET.strain.gain(cfg, gf) * eps;
+    var mV = ratio * vex * 1000;
+    var mVV = ratio * 1000; // mV/V
+    var k = exact && eps !== 0 ? ratio / eps : ET.strain.gain(cfg, gf);
+    var sens1000 = k * 1e-3 * 1000; // mV/V per 1000 µε = k (since 1000µε * k * 1000 mV/V per V/V... wait)
+    // mV/V = ratio*1000 = k*eps*1000; for 1000 µε, eps=0.001, mV/V = k*1 = k?  k*0.001*1000 = k. Yes sens1000 = k.
+    sens1000 = k;
+    res.className = "result ok";
+    $("sgBig").textContent = sig(mV, 4) + " mV  ·  " + sig(mVV, 4) + " mV/V";
+    var pairs = [
+      ["Strain", sig(eps * 1e6, 4) + " µε"],
+      ["Vout", sig(mV, 5) + " mV  at  " + sig(vex, 4) + " V excitation"],
+      ["Vout / Vex", sig(mVV, 5) + " mV/V"],
+      ["Sensitivity", sig(sens1000, 4) + " mV/V per 1000 µε"]
+    ];
+    // Sensitivity per N or N·m when geometry used
+    if (mode === "geom") {
+      var g2 = $("sgGeom").value;
+      if (g2 === "shaft") {
+        var T0 = num("sgTq");
+        if (T0 !== 0 && isFinite(T0)) {
+          var per = mVV / T0, perMv = mV / T0;
+          pairs.push(["Sensitivity (torque)", sig(per, 5) + " mV/V per N·m  ·  " + sig(perMv, 5) + " mV per N·m"]);
+        }
+      } else {
+        var F0 = num("sgF");
+        if (F0 !== 0 && isFinite(F0)) {
+          var per2 = mVV / F0, perMv2 = mV / F0;
+          pairs.push(["Sensitivity (force)", sig(per2, 5) + " mV/V per N  ·  " + sig(perMv2, 5) + " mV per N"]);
+        }
+      }
+    }
+    kv($("sgKv"), pairs);
+    var form = {
+      quarter: exact ? "Exact quarter-bridge: Vo/Vex = GF·ε / (4 + 2·GF·ε)." : "Linear quarter-bridge: Vo/Vex ≈ GF·ε/4.",
+      half: "Half-bridge bending (adjacent arms, ±ε): Vo/Vex ≈ GF·ε/2.",
+      full: "Full-bridge bending: Vo/Vex ≈ GF·ε.",
+      torque: "Torque / shear full-bridge (±45°): Vo/Vex ≈ GF·ε, with ε the 45° gauge strain."
+    }[cfg];
+    $("sgForm").textContent = how + ". " + form + " Metal-foil constantan gauges are typically GF ≈ 2.0–2.1 and 120 Ω or 350 Ω.";
+  }
+  $("sgMat").addEventListener("change", function () { sgApplyMat(); sgCalc(); });
+  $("sgPreset").addEventListener("change", function () { sgApplyPreset(); sgCalc(); });
+  $("sgGF").addEventListener("input", function () { $("sgPreset").value = "custom"; sgCalc(); });
+  $("sgE").addEventListener("input", function () { $("sgMat").value = "custom"; sgCalc(); });
+  $("sgNu").addEventListener("input", function () { /* keep material, ν may be edited */ sgCalc(); });
+  $("sgCfg").addEventListener("change", function () {
+    if ($("sgCfg").value === "torque" && $("sgMode").value === "geom") $("sgGeom").value = "shaft";
+    sgCalc();
+  });
+  ["sgVex","sgMode","sgEps","sgStress","sgGeom","sgF","sgLen","sgB","sgH","sgD","sgTq","sgAx","sgExact"].forEach(function (id) {
+    $(id).addEventListener("input", sgCalc); $(id).addEventListener("change", sgCalc);
+  });
+
+  function all() { wireCalc(); identDraw(); identEnc(); ohmCalc(); battCalc(); divCalc(); rcCalc(); aForce(); aSuggest(); aMatDraw(); tCalc(); potRefresh(potSel); sgCalc(); hav(); nmea(); rfCalc(); }
   all();
   if (imperial) setUnits(true);
   var start = (location.hash || "").slice(1);
