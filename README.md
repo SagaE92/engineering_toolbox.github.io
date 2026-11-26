@@ -6,7 +6,7 @@ Live: https://sagae92.github.io/engineering_toolbox.github.io/
 
 ## Tabs
 
-- **Wire Sizing**: Spec 55 (Hookup 55A011X / Airframe 55A081X) wire-size calculator. It uses R20 compensated for temperature (α = 0.00393/°C from 20 °C), and Length is the total conductor length (no doubling). It shows the recommended AWG, plus nearby sizes with mV, % and g/m.
+- **Wire Sizing**: Spec 55 (XL-ETFE) and TR16 (Thermorad / XLPO) wire-size calculator, matching sagaelectrics.eu. It uses R20 compensated for temperature (α = 0.00393/°C from 20 °C), and Length is the total conductor length (no doubling). It shows the recommended size, plus nearby sizes with mV, % and g/m.
 - **IDENT**: MIL-STD-681 colour-code decoder (tap colours, closest to the connector first, up to 3) and encoder (number → colours), with a reference table.
 - **Ohm's Law**: enter any two of V, I, R, P; the other two are solved live.
 - **Battery**: chemistry usable-% defaults, Ah ↔ kWh (nameplate and usable), C-rate, series/parallel pack helper, runtime and charge-time estimates.

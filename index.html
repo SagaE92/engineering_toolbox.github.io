@@ -87,22 +87,26 @@ td.l,th.l{text-align:left}
 <!-- ============ WIRE ============ -->
 <section id="tab-wire" role="tabpanel" class="on">
   <div class="card">
-    <h2>Spec 55 wire size</h2>
+    <h2>Wire size</h2>
     <div class="grid">
       <div><label for="wCur">Current (A)</label><input id="wCur" type="number" inputmode="decimal" min="0" step="any" value="10"></div>
       <div><label for="wLen">Length</label><div class="inrow"><input id="wLen" type="number" inputmode="decimal" min="0" step="any" value="3"><select id="wUnit" aria-label="Length unit"><option value="m" selected>m</option><option value="ft">ft</option></select></div></div>
       <div><label for="wVolt">Voltage (V)</label><input id="wVolt" type="number" inputmode="decimal" min="0" step="any" value="14"></div>
       <div><label for="wMax">Max drop (%)</label><input id="wMax" type="number" inputmode="decimal" min="0" step="any" value="5"></div>
       <div><label for="wTemp">Conductor temp (°C)</label><input id="wTemp" type="number" inputmode="decimal" step="any" value="20"></div>
-      <div class="full"><label for="wCon">Type</label><select id="wCon"><option value="hookup" selected>Hookup 55A011X</option><option value="airframe">Airframe 55A081X</option></select></div>
+      <div class="full"><label for="wMat">Material</label><select id="wMat"><option value="spec55" selected>Spec 55 (XL-ETFE)</option><option value="tr16">TR16 (Thermorad / XLPO)</option></select></div>
     </div>
-    <p class="note">Hookup (55A011X): lightweight single-wall 0.006", 12–30 AWG, for equipment/internal wiring.<br>Airframe (55A081X): dual-wall 0.010", 26–00 AWG, more robust for harnesses and larger sizes.</p>
+    <p class="note" id="wMatNote">Spec 55: thin XL-ETFE single-wall, tin-plated copper, –65 °C to 150 °C.</p>
     <p class="note">Length is the total conductor length (supply + return); no automatic doubling.</p>
     <div id="wRes" class="result"></div>
   </div>
   <div class="card"><h2>Nearby sizes</h2><div id="wTable"></div></div>
-  <div class="card"><h2>Notes</h2>
-    <p class="note" style="margin:0">R at temp = R20 × (1 + 0.00393 × (T − 20)). Drop = I × R × length. Spec 55 continuous rating –65 °C to 200 °C (silver/nickel) or 150 °C (tin). Voltage-drop targets: critical / electronics ≤ 3–5 %; general power or weight-sensitive high-load runs can accept 10–15 % (lost power is the trade-off). Ampacity is not calculated.</p>
+  <div class="card"><h2>Guides</h2>
+    <ul class="note" style="margin:0;padding-left:18px;line-height:1.5">
+      <li>Spec 55: –65 °C to 150 °C (tin) or 200 °C (silver/nickel). TR16: –55 °C to 125 °C.</li>
+      <li>Resistance temperature compensation uses copper α = 0.00393/°C from 20 °C.</li>
+      <li>Voltage-drop targets: critical / electronics, aim for ≤ 3–5 %. General power or high-load, weight-sensitive runs can accept 10–15 % to save weight; the trade-off is lost power.</li>
+    </ul>
   </div>
 </section>
 
@@ -260,7 +264,8 @@ var ET = (function () {
   var FT = 0.3048;
   var wire = {
     ALPHA: 0.00393,
-    // [AWG, stranding, OD in, weight lb/1000 ft]
+    // Spec 55: [AWG, stranding, OD in, weight lb/1000 ft] — calculator uses hookup (single-wall), as on sagaelectrics.eu
+    // TR16:   [mm², stranding, OD mm, weight kg/km (= g/m), R20 ohm/km] from Raychem TR16 SCD via sagaelectrics.eu/wire.html
     SPEC: {
       hookup: [
         ["30", "7×38", 0.024, 0.66], ["28", "7×38", 0.027, 0.91], ["26", "19×38", 0.032, 1.4],
@@ -282,18 +287,44 @@ var ET = (function () {
       "16": 4.015, "14": 2.525, "12": 1.588, "10": 0.9989, "8": 0.6282, "6": 0.3951, "4": 0.2485,
       "2": 0.1563, "1": 0.1239, "0": 0.09827, "00": 0.07793
     },
-    compute: function (I, L, unit, V, maxPct, T, con) {
+    TR16: [
+      ["1.5", "85×0.16", 3.00, 20, 12.80],
+      ["2.5", "7×20×0.16", 3.90, 32, 7.76],
+      ["4", "7×33×0.16", 4.50, 48, 4.76],
+      ["6", "7×27×0.21", 5.20, 69, 3.23],
+      ["10", "19×17×0.21", 6.20, 111, 1.88],
+      ["16", "19×27×0.21", 7.40, 173, 1.19],
+      ["25", "37×21×0.21", 9.30, 261, 0.78],
+      ["35", "37×30×0.21", 10.60, 365, 0.552],
+      ["50", "37×19×0.31", 12.45, 516, 0.387],
+      ["70", "37×27×0.31", 14.55, 728, 0.272],
+      ["95", "37×36×0.31", 17.00, 971, 0.204],
+      ["120", "37×46×0.31", 19.40, 1364, 0.159]
+    ],
+    compute: function (I, L, unit, V, maxPct, T, mat) {
       var lenFt = unit === "ft" ? L : L / FT;
+      var lenM = unit === "m" ? L : L * FT;
       var factor = 1 + wire.ALPHA * (T - 20);
-      var rows = wire.SPEC[con].map(function (w) {
-        var rt = wire.R20[w[0]] * factor;
-        var vd = I * (rt / 1000) * lenFt; // total conductor length, no multiplier
-        var pct = vd / V * 100;
-        return { awg: w[0], strand: w[1], od: w[2], lb: w[3], gm: w[3] * LBKFT_TO_GM, rt: rt, vd: vd, pct: pct, ok: pct <= maxPct };
-      });
+      var rows;
+      if (mat === "tr16") {
+        rows = wire.TR16.map(function (w) {
+          var rt = w[4] * factor; // ohm/km
+          var vd = I * (rt / 1000) * lenM; // total conductor length, no multiplier
+          var pct = vd / V * 100;
+          return { size: w[0], unit: "mm²", strand: w[1], od: w[2], gm: w[3], rt: rt, vd: vd, pct: pct, ok: pct <= maxPct };
+        });
+      } else {
+        // Spec 55 single-wall (hookup) construction, matching sagaelectrics.eu
+        rows = wire.SPEC.hookup.map(function (w) {
+          var rt = wire.R20[w[0]] * factor;
+          var vd = I * (rt / 1000) * lenFt; // total conductor length, no multiplier
+          var pct = vd / V * 100;
+          return { size: w[0], unit: "AWG", strand: w[1], od: w[2], gm: w[3] * LBKFT_TO_GM, rt: rt, vd: vd, pct: pct, ok: pct <= maxPct };
+        });
+      }
       var pick = -1;
       for (var i = 0; i < rows.length; i++) { if (rows[i].ok) { pick = i; break; } }
-      return { rows: rows, pick: pick, lenM: lenFt * FT };
+      return { rows: rows, pick: pick, lenM: lenM };
     }
   };
 
@@ -510,21 +541,27 @@ if (typeof module !== "undefined") module.exports = ET;
   });
 
   /* ---------- wire ---------- */
+  function updateMatNote() {
+    var mat = $("wMat").value;
+    $("wMatNote").textContent = mat === "tr16"
+      ? "TR16 (Thermorad): radiation-crosslinked flexible polyolefin, IEC 60228 Class 6 fine stranding, –55 °C to 125 °C."
+      : "Spec 55: thin XL-ETFE single-wall, tin-plated copper, –65 °C to 150 °C.";
+  }
   function wireCalc() {
+    updateMatNote();
     var I = num("wCur"), L = num("wLen"), V = num("wVolt"), mx = num("wMax"), T = num("wTemp");
-    var con = $("wCon").value, res = $("wRes"), tbl = $("wTable");
+    var mat = $("wMat").value, res = $("wRes"), tbl = $("wTable");
     if (!(I >= 0) || !(L >= 0) || !(V > 0) || !(mx > 0) || !isFinite(T)) {
       res.className = "result bad";
       res.innerHTML = '<div class="first">Enter current, length, a voltage above 0, a max drop above 0 and a temperature.</div>';
       tbl.innerHTML = ""; return;
     }
-    var c = ET.wire.compute(I, L, $("wUnit").value, V, mx, T, con);
-    var rows = c.rows, pick = c.pick, typeName = con === "hookup" ? "Hookup 55A011X" : "Airframe 55A081X";
+    var c = ET.wire.compute(I, L, $("wUnit").value, V, mx, T, mat);
+    var rows = c.rows, pick = c.pick, typeName = mat === "tr16" ? "TR16" : "Spec 55";
     function wt(g) { return g >= 1000 ? fmt(g / 1000, 2) + " kg" : fmt(g, g < 100 ? 1 : 0) + " g"; }
     function mv(v) { return String(Math.round(v * 1000)); }
     var r = pick >= 0 ? rows[pick] : rows[rows.length - 1];
-    var lines = '<div class="big" id="wBig">' + r.awg + " AWG</div>" +
-      '<div class="sub">' + typeName + " · " + r.strand + "</div>" +
+    var lines = '<div class="big" id="wBig">' + r.size + " " + r.unit + " " + typeName + " · " + r.strand + "</div>" +
       '<dl class="kv" style="margin-top:8px"><dt>Voltage drop</dt><dd>' + mv(r.vd) + " mV (" + fmt(r.pct, 2) + " %)</dd>" +
       "<dt>Total weight</dt><dd>" + wt(r.gm * c.lenM) + " (" + fmt(r.gm, r.gm < 10 ? 2 : 1) + " g/m)</dd></dl>";
     if (pick >= 0) {
@@ -533,20 +570,20 @@ if (typeof module !== "undefined") module.exports = ET;
     } else {
       res.className = "result bad";
       res.innerHTML = '<div class="first err" style="font-weight:700">No ' + typeName + " size meets " + fmt(mx, 2) + " %. Largest:</div>" + lines +
-        '<div class="note">' + (con === "hookup" ? "Try Airframe, a shorter run or a higher voltage." : "Shorten the run, raise the voltage or run conductors in parallel.") + "</div>" +
+        '<div class="note">Shorten the run, raise the voltage or run conductors in parallel.</div>' +
         '<button class="copy" type="button" data-copy="wBig">Copy</button>';
     }
     var center = pick >= 0 ? pick : rows.length - 1;
     var lo = Math.max(0, center - 2), hi = Math.min(rows.length - 1, center + 2);
-    var h = '<table><tr><th class="l"></th><th>AWG</th><th>Strand</th><th>mV</th><th>%</th><th>g/m</th></tr>';
+    var h = '<table><tr><th class="l"></th><th>' + r.unit + '</th><th>Strand</th><th>mV</th><th>%</th><th>g/m</th></tr>';
     for (var k = lo; k <= hi; k++) {
       var w = rows[k];
-      h += "<tr" + (k === pick ? ' class="pick"' : "") + '><td class="l ' + (w.ok ? "pass" : "fail") + '">' + (w.ok ? "✓" : "✗") + "</td><td>" + w.awg + "</td><td>" + w.strand +
+      h += "<tr" + (k === pick ? ' class="pick"' : "") + '><td class="l ' + (w.ok ? "pass" : "fail") + '">' + (w.ok ? "✓" : "✗") + "</td><td>" + w.size + "</td><td>" + w.strand +
         "</td><td>" + mv(w.vd) + "</td><td>" + fmt(w.pct, 2) + "</td><td>" + fmt(w.gm, w.gm < 10 ? 2 : 1) + "</td></tr>";
     }
     tbl.innerHTML = h + "</table>";
   }
-  ["wCur", "wLen", "wUnit", "wVolt", "wMax", "wTemp", "wCon"].forEach(function (id) { $(id).addEventListener("input", wireCalc); $(id).addEventListener("change", wireCalc); });
+  ["wCur", "wLen", "wUnit", "wVolt", "wMax", "wTemp", "wMat"].forEach(function (id) { $(id).addEventListener("input", wireCalc); $(id).addEventListener("change", wireCalc); });
   $("wUnit").addEventListener("change", function () {
     var L = num("wLen"); // convert value when the unit is switched by hand
     if (isFinite(L)) $("wLen").value = +($("wUnit").value === "ft" ? L / ET.FT : L * ET.FT).toFixed(2);
