@@ -357,7 +357,7 @@ $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A</textarea>
     <select id="aPick"></select>
     <div class="note" id="aPickNote"></div>
     <div class="result" id="aFRes"><div class="big first" id="aFBig"></div><dl class="kv" id="aFKv"></dl><button class="copy" type="button" data-copy="aFBig">Copy</button></div>
-    <p class="note">Force = area × shear strength / safety factor (1 MPa = 1 N/mm²). Default 25 × 12.5 mm is a typical ISO 4587 overlap. TDS shear values are typical, not design allowables — use a safety factor and verify for the application.</p>
+    <p class="note">Force = area × shear strength / safety factor (1 MPa = 1 N/mm²). Default 25 × 12.5 mm is a common ISO 4587 overlap. Shear figures are TDS values, not design allowables — use a safety factor and verify for the application.</p>
   </div>
   <div class="card">
     <h2>Suggester</h2>
@@ -366,20 +366,20 @@ $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A</textarea>
       <div><label for="aSubB">Substrate B</label><select id="aSubB"></select></div>
     </div>
     <div id="aSug" class="list" style="margin-top:10px"></div>
-    <p class="note">Ranked by compatibility (TDS-listed substrate data first), then by the lower of the two measured shears. Tap a row for the detail card and to fill the force calculator. Typical TDS values; verify for your application.</p>
+    <p class="note">Ranked by compatibility (substrates named on that product’s TDS first), then by the lower of the two TDS shears. Tap a row for the detail card and to fill the force calculator. Only TDS-listed substrates and numbers are used.</p>
   </div>
   <div class="card">
     <h2>Adhesive library</h2>
     <div id="aLib" class="list"></div>
     <div class="result" id="aDet" style="margin-top:10px"></div>
-    <p class="note">Typical TDS values, not specifications. Shear is quoted on the substrate named in the card. Sources: Henkel LOCTITE TDS (datasheets.tdx.henkel.com) and 3M Scotch-Weld / VHB TDS (see each card). A value marked “—” was not stated as a single figure on the TDS.</p>
+    <p class="note">Every number is a TDS value with the test substrate and condition on the card, not a design allowable or estimate. Each card cites the manufacturer document (title, revision, URL). A field marked “—” is not stated as a single figure on that TDS.</p>
   </div>
   <div class="card">
     <h2>Material library</h2>
     <label for="aMat">Material</label>
     <select id="aMat"></select>
     <div class="result" id="aMatDet" style="margin-top:10px"></div>
-    <p class="note">CTE and service temperatures are well-established typical values, not grade-specific guarantees. Surface prep is general practice; follow the adhesive TDS.</p>
+    <p class="note">CTE and maximum-temperature figures were removed because they were not tied to a named grade datasheet. Surface-prep notes are general practice — follow the adhesive TDS and the material grade datasheet.</p>
   </div>
 </section>
 
@@ -429,14 +429,15 @@ $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A</textarea>
       <div class="full"><label for="potCure">Cure type</label><input id="potCure" type="text" maxlength="80"></div>
       <div class="full"><label for="potUses">Typical uses</label><textarea id="potUses" maxlength="400"></textarea></div>
       <div class="full"><label for="potNotes">Key notes</label><textarea id="potNotes" maxlength="500"></textarea></div>
+      <div class="full"><label for="potSource">Source</label><textarea id="potSource" maxlength="500"></textarea></div>
     </div>
     <div class="btns">
       <button class="btn ghost" type="button" id="potAdd">Add custom</button>
       <button class="btn ghost" type="button" id="potDup">Duplicate</button>
       <button class="btn ghost" type="button" id="potDel">Delete custom</button>
-      <button class="btn ghost" type="button" id="potReset">Reset typicals</button>
+      <button class="btn ghost" type="button" id="potReset">Reset to datasheet list</button>
     </div>
-    <p class="note">Typical / rough chemistry-class values, not product specifications. Edits are kept in this browser (localStorage) and work offline. Reset typicals restores the built-in list and drops custom entries.</p>
+    <p class="note">Figures are from each product’s official manufacturer TDS (see the Source field). “—” means the TDS does not state that value. Edits are kept in this browser (localStorage) and work offline. Reset to datasheet list restores the built-in list and drops custom entries.</p>
   </div>
   <div class="card">
     <h2>Library</h2>
@@ -683,129 +684,200 @@ var ET = (function () {
       { id: "pc", name: "Polycarbonate" },
       { id: "lse", name: "PP / PE (LSE)" }
     ],
-    // Typical engineering values, not grade-specific.
+    // Prep notes only — CTE / max-temp numbers omitted (not tied to a named grade datasheet).
     MATS: [
-      { id: "aluminium", name: "Aluminium", cte: "23 ppm/K (typical 6061 / general)", tmax: "~150–180 °C before common heat-treatable grades lose temper strength (melts ~660 °C)", prep: "Degrease, abrade (e.g. 180–320 grit) or grit-blast, optionally etch/anodise, and bond promptly — the oxide grows quickly." },
-      { id: "steel", name: "Steel", cte: "12 ppm/K (typical carbon / mild steel)", tmax: "The metal itself is rarely the limit (~400 °C+ before heavy oxidation); the adhesive or coating usually is.", prep: "Degrease, abrade or grit-blast to clean bright metal, remove rust and mill scale, and bond soon." },
-      { id: "cfrp", name: "Carbon fibre (epoxy CFRP)", cte: "≈ 0–2 ppm/K along the fibres (can be slightly negative); ~30–50 ppm/K through-thickness", tmax: "Typically 80–120 °C for a standard epoxy matrix; high-temperature systems can go higher.", prep: "Use peel ply or a light abrasion, degrease with IPA, and avoid cutting through load-bearing fibres. Watch for peel-ply or mould-release contamination." },
-      { id: "gfrp", name: "Glass fibre (GFRP / GRP)", cte: "~10–20 ppm/K for a typical laminate (often ~15)", tmax: "Typically 80–120 °C (polyester) or ~120–150 °C (epoxy matrix).", prep: "Abrade to remove gelcoat gloss, degrease, and remove dust. Do not rely on a shiny moulded face." },
-      { id: "abs", name: "ABS", cte: "~70–90 ppm/K (typically ~80)", tmax: "~80–90 °C continuous (softens above this).", prep: "Degrease with IPA (avoid aggressive solvents that can craze), light abrasion, and a plastics primer if the adhesive TDS calls for one." },
-      { id: "pa", name: "PA (nylon)", cte: "~80–100 ppm/K dry; moisture uptake changes dimensions and surface energy", tmax: "~80–120 °C continuous depending on grade (PA6 often ~80–100 °C).", prep: "Degrease, abrade; dry the part before bonding (nylon is hygroscopic). Plasma or a primer often helps. Moisture-sensitive." },
-      { id: "pbt", name: "PBT", cte: "~60–80 ppm/K (typically ~70)", tmax: "~120 °C typical continuous.", prep: "Degrease, light abrasion; a primer may be required. Few adhesive TDS quote PBT specifically — test the joint." },
-      { id: "pc", name: "Polycarbonate", cte: "~65–70 ppm/K", tmax: "~120 °C typical continuous (softens ~140–150 °C).", prep: "Degrease carefully — PC is solvent-sensitive (avoid acetone / MEK). Light abrasion; a primer for cyanoacrylates if specified." }
+      { id: "aluminium", name: "Aluminium",
+        prep: "Degrease, abrade (e.g. 180–320 grit) or grit-blast, optionally etch/anodise, and bond promptly — the oxide grows quickly. Check CTE and service temperature on the specific alloy datasheet." },
+      { id: "steel", name: "Steel",
+        prep: "Degrease, abrade or grit-blast to clean bright metal, remove rust and mill scale, and bond soon. Check CTE and service temperature on the specific grade datasheet." },
+      { id: "cfrp", name: "Carbon fibre (epoxy CFRP)",
+        prep: "Use peel ply or a light abrasion, degrease with IPA, and avoid cutting through load-bearing fibres. Watch for peel-ply or mould-release contamination. Matrix temperature limit depends on the resin system — see the laminate datasheet." },
+      { id: "gfrp", name: "Glass fibre (GFRP / GRP)",
+        prep: "Abrade to remove gelcoat gloss, degrease, and remove dust. Do not rely on a shiny moulded face. Service temperature depends on the matrix (polyester vs epoxy) — see the laminate datasheet." },
+      { id: "abs", name: "ABS",
+        prep: "Degrease with IPA (avoid aggressive solvents that can craze), light abrasion, and a plastics primer if the adhesive TDS calls for one." },
+      { id: "pa", name: "PA (nylon)",
+        prep: "Degrease, abrade; dry the part before bonding (nylon is hygroscopic). Plasma or a primer often helps. Moisture-sensitive." },
+      { id: "pbt", name: "PBT",
+        prep: "Degrease, light abrasion; a primer may be required. Few adhesive TDS quote PBT specifically — test the joint." },
+      { id: "pc", name: "Polycarbonate",
+        prep: "Degrease carefully — PC is solvent-sensitive (avoid acetone / MEK). Light abrasion; a primer for cyanoacrylates if specified." }
     ],
-    // shear in MPa; shears{} only where a TDS number was found.
+    // shear in MPa; shears{} only where that product's own TDS states a number. source* is the official document.
     ITEMS: [
-      { id: "ea9466", name: "Loctite EA 9466", type: "2K toughened epoxy, 2:1",
-        shear: 37, shearSub: "grit-blasted steel, ISO 4587, 5 d @ 22 °C",
+      { id: "ea9466", name: "LOCTITE EA 9466", type: "2K toughened epoxy, 2:1",
+        shear: 37, shearSub: "TDS value, grit-blasted steel, ISO 4587, 5 d @ 22 °C",
         shears: { steel: 37, aluminium: 26, pc: 5.3, pa: 1.6, gfrp: 5.0, abs: 4.7 },
-        work: "60 min", fixture: "180 min (grit-blasted steel, 0.1 N/mm²)",
-        cure: "5 d @ 22 °C (quoted OLS); 24 h before service loads (directions)",
-        temp: "— (TDS gives a hot-strength curve, no single rating)",
+        work: "60 min (TDS work life)", fixture: "180 min (TDS, grit-blasted steel, 0.1 N/mm²)",
+        cure: "5 d @ 22 °C (quoted OLS); directions: 24 h before service loads",
+        temp: "— (TDS gives a hot-strength curve and Tg 62 °C, no single service rating)",
         ok: ["aluminium", "steel", "gfrp", "abs", "pa", "pc"],
-        notes: "Also: abraded Al 26 MPa, anodised Al 17.9, stainless 23, galvanized 8.5, GRP 5.0, ABS 4.7, PC 5.3, nylon 1.6 MPa. Nylon is weak. Tg 62 °C (ASTM E1640).",
-        source: "Henkel LOCTITE EA 9466 TDS, March 2025" },
-      { id: "ea9497", name: "Loctite EA 9497", type: "2K medium-viscosity epoxy, 2:1",
-        shear: 20, shearSub: "mild steel grit-blasted, ISO 4587, 7 d @ 22 °C",
+        notes: "Also on this TDS (ISO 4587, 5 d @ 22 °C): abraded Al 26.0 MPa, anodised Al 17.9, HDG 8.5, stainless 23.0, PC 5.3, nylon 1.6, fir 11.3, GRP 5.0, ABS 4.7 MPa. Nylon is weak. Tg 62 °C (ASTM E1640).",
+        sourceMfr: "Henkel LOCTITE", sourceTitle: "Technical Data Sheet, LOCTITE EA 9466",
+        sourceRev: "March 2025",
+        sourceUrl: "https://datasheets.tdx.henkel.com/LOCTITE-EA-9466-en_GL.pdf" },
+      { id: "ea9497", name: "LOCTITE EA 9497", type: "2K medium-viscosity epoxy, 2:1",
+        shear: 20, shearSub: "TDS value, mild steel grit-blasted, ISO 4587, 7 d @ 22 °C",
         shears: { steel: 20, aluminium: 15, abs: 6, pc: 4, gfrp: 8 },
-        work: "3–4 h @ 22 °C (165–255 min pot life, TDS)", fixture: "8 h @ 22 °C",
+        work: "3–4 h @ 22 °C (directions); pot life 165–255 min (TDS)",
+        fixture: "8 h @ 22 °C (TDS)",
         cure: "7 d @ 22 °C (quoted OLS)",
-        temp: "Tg 67 °C (7 d @ 22 °C); 97 °C / 116 °C with 80 °C / 120 °C post-cure — no single service rating",
+        temp: "— (TDS gives Tg, no single service rating). Tg 67 °C (7 d @ 22 °C); 97 °C / 116 °C with 80 °C / 120 °C post-cure",
         ok: ["aluminium", "steel", "gfrp", "abs", "pc"],
-        notes: "High compressive strength and heat-transfer / potting use. Stainless 9, as-received Al 7, abraded Al 15, GFR epoxy 8 MPa. Plastics are modest.",
-        source: "Henkel LOCTITE EA 9497 TDS, October 2014" },
-      { id: "l406", name: "Loctite 406", type: "Ethyl cyanoacrylate, low viscosity",
-        shear: 15.5, shearSub: "grit-blasted steel, ISO 4587, 24 h @ 22 °C",
+        notes: "Also on this TDS (ISO 4587, 7 d @ 22 °C): stainless 9, Al 7, abraded Al 15, brass / copper / zinc dichromate 5, ABS 6, PC 4, PMMA 1, glass-fiber reinforced epoxy 8, teak 12, softwood 8 MPa.",
+        sourceMfr: "Henkel LOCTITE", sourceTitle: "Technical Data Sheet, LOCTITE EA 9497",
+        sourceRev: "October 2014",
+        sourceUrl: "https://datasheets.tdx.henkel.com/LOCTITE-EA-9497-en_GL.pdf" },
+      { id: "l406", name: "LOCTITE 406", type: "Ethyl cyanoacrylate, low viscosity",
+        shear: 15.5, shearSub: "TDS value, grit-blasted steel, ISO 4587, 24 h @ 22 °C",
         shears: { steel: 15.5, aluminium: 12, abs: 8.8, pc: 9.1 },
-        work: "— (humidity cure; no pot life)", fixture: "Steel 20–45 s; Al / ABS / PVC < 5 s; PC 10–20 s (22 °C / 50 % RH)",
-        cure: "≥ 24 h for full chemical resistance; 24–72 h before service loads",
-        temp: "— (TDS hot-strength curve; no single rating)",
+        work: "— (humidity cure; no pot life on the TDS)",
+        fixture: "Steel 20–45 s; Al / ABS / PVC / neoprene / nitrile / phenolic < 5 s; PC 10–20 s (TDS, 22 °C / 50 % RH)",
+        cure: "≥ 24 h for full chemical resistance; 24–72 h before service loads (TDS)",
+        temp: "— (TDS gives a hot-strength curve, no single service rating)",
         ok: ["aluminium", "steel", "abs", "pc"],
-        notes: "Intended for plastics and elastomers with very fast fixture. Also phenolic 11.3, PVC 8.7 MPa. For PP / PE / PTFE use LOCTITE SF 770 primer (PP + 406: 15 MPa block shear, SF 770 TDS).",
-        source: "Henkel LOCTITE 406 TDS, February 2012; SF 770 primer TDS, May 2021" },
-      { id: "l454", name: "Loctite 454", type: "Ethyl cyanoacrylate gel, thixotropic",
-        shear: 20.9, shearSub: "grit-blasted steel, ISO 4587, 72 h @ 22 °C",
+        notes: "Also on this TDS (ISO 4587, 24 h @ 22 °C): etched Al 12 MPa, zinc dichromate 14, ABS 8.8, PVC 8.7, PC 9.1, phenolic 11.3 MPa. For PP / PE / PTFE the SF 770 TDS quotes PP + 406: 15 N/mm² block shear (ISO 13445, 24 h @ 23 °C / 50 % RH).",
+        sourceMfr: "Henkel LOCTITE", sourceTitle: "Technical Data Sheet, LOCTITE 406",
+        sourceRev: "February 2012",
+        sourceUrl: "https://datasheets.tdx.henkel.com/LOCTITE-406-en_GL.pdf" },
+      { id: "l454", name: "LOCTITE 454", type: "Ethyl cyanoacrylate gel, thixotropic",
+        shear: 20.9, shearSub: "TDS value, grit-blasted steel, ISO 4587, 72 h @ 22 °C",
         shears: { steel: 20.9, aluminium: 17.1, abs: 8.3, pc: 7.7 },
-        work: "— (humidity cure; no pot life)", fixture: "Steel 30–60 s; Al 2–10 s; ABS < 5 s; PC 10–15 s (22 °C / 50 % RH)",
-        cure: "≥ 24 h functional; quoted OLS at 72 h; 24–72 h before service loads",
-        temp: "— (TDS hot-strength curve; no single rating)",
+        work: "— (humidity cure; no pot life on the TDS)",
+        fixture: "Steel 30–60 s; Al 2–10 s; ABS < 5 s; PC 10–15 s (TDS, 22 °C / 50 % RH)",
+        cure: "Quoted OLS at 72 h @ 22 °C; ≥ 24 h functional; 24–72 h before service loads (TDS)",
+        temp: "— (TDS gives a hot-strength curve, no single service rating)",
         ok: ["aluminium", "steel", "abs", "pc"],
-        notes: "Gel, stays put on vertical faces; also for porous materials (wood, paper, leather, fabric). PVC 7.1, phenolic 12.3 MPa. SF 770 primer for polyolefins.",
-        source: "Henkel LOCTITE 454 TDS, February 2012" },
-      { id: "l401", name: "Loctite 401", type: "Ethyl cyanoacrylate, low viscosity",
-        shear: 20, shearSub: "grit-blasted steel, ISO 4587, 72 h @ 22 °C",
+        notes: "Gel; TDS also mentions porous materials (wood, paper, leather, fabric). Also on this TDS (72 h @ 22 °C): etched Al 17.1, zinc dichromate 11.5, ABS 8.3, PVC 7.1, phenolic 12.3, PC 7.7 MPa. SF 770 primer for polyolefins (see SF 770 TDS).",
+        sourceMfr: "Henkel LOCTITE", sourceTitle: "Technical Data Sheet, LOCTITE 454",
+        sourceRev: "February 2012",
+        sourceUrl: "https://datasheets.tdx.henkel.com/LOCTITE-454-en_GL.pdf" },
+      { id: "l401", name: "LOCTITE 401", type: "Ethyl cyanoacrylate, low viscosity",
+        shear: 20, shearSub: "TDS value, grit-blasted steel, ISO 4587, 72 h @ 22 °C",
         shears: { steel: 20, aluminium: 12.4, abs: 7.5, pc: 9.6 },
-        work: "— (humidity cure; no pot life)", fixture: "Steel / Al / ABS / PVC < 5 s; PC 5–10 s (22 °C / 50 % RH)",
-        cure: "≥ 24 h functional; quoted OLS at 72 h; 24–72 h before service loads",
-        temp: "— (TDS hot-strength curve; no single rating)",
+        work: "— (humidity cure; no pot life on the TDS)",
+        fixture: "Steel / Al / ABS / PVC < 5 s; PC 5–10 s (TDS, 22 °C / 50 % RH)",
+        cure: "Quoted OLS at 72 h @ 22 °C; ≥ 24 h functional; 24–72 h before service loads (TDS)",
+        temp: "— (TDS gives a hot-strength curve, no single service rating)",
         ok: ["aluminium", "steel", "abs", "pc"],
-        notes: "General-purpose instant adhesive for metals, plastics and elastomers; also porous materials. PVC 10, phenolic 12.6 MPa. SF 770 primer for PP / PE / PTFE.",
-        source: "Henkel LOCTITE 401 TDS, February 2012" },
+        notes: "TDS describes it for metals, plastics and elastomers, also porous materials. Also on this TDS (72 h @ 22 °C): etched Al 12.4, zinc dichromate 2.5, ABS 7.5, PVC 10, phenolic 12.6, PC 9.6 MPa. SF 770 primer for PP / PE / PTFE (see SF 770 TDS).",
+        sourceMfr: "Henkel LOCTITE", sourceTitle: "Technical Data Sheet, LOCTITE 401",
+        sourceRev: "February 2012",
+        sourceUrl: "https://datasheets.tdx.henkel.com/LOCTITE-401-en_GL.pdf" },
+      { id: "sf770", name: "LOCTITE SF 770", type: "Primer for polyolefins (not an adhesive)",
+        shear: null, shearSub: "Not an adhesive. SF 770 TDS: PP + LOCTITE 406, 15 N/mm² block shear, ISO 13445, 24 h @ 23 °C / 50 % RH",
+        shears: {},
+        work: "—", fixture: "—",
+        cure: "— (see the CA TDS used with this primer)",
+        temp: "—",
+        ok: ["lse"], primer: true,
+        notes: "Primer / adhesion promoter for polyolefins and other LSE plastics (PP, PE, PTFE as named on the TDS) used with LOCTITE cyanoacrylates. The 15 N/mm² figure is for 406 on primed PP, not a strength of 770 itself. Not used to autofill the force calculator.",
+        sourceMfr: "Henkel LOCTITE", sourceTitle: "Technical Data Sheet, LOCTITE SF 770",
+        sourceRev: "May 2021",
+        sourceUrl: "https://datasheets.tdx.henkel.com/LOCTITE-SF-770-en_GL.pdf" },
       { id: "dp810", name: "3M Scotch-Weld DP810", type: "2K low-odour acrylic, 1:1",
-        shear: 29, shearSub: "etched aluminium, ASTM D1002, 4200 psi (2016 TDS)",
-        shears: { aluminium: 29, steel: 21.4, abs: 4.1, pc: 5.9, gfrp: 26.2 },
-        work: "10 min", fixture: "20 min (to 50 psi / handling)",
-        cure: "8–24 h (to ≥ 80 % ultimate, Al OLS; DP810NS family TDS, June 2024)",
-        temp: "— (no single rating; 2019 3M selector lists ~500 psi / 3 MPa at 82 °C)",
-        ok: ["aluminium", "steel", "gfrp", "abs", "pc"],
-        notes: "Minimal surface prep; also oily metals. 2016 TDS: CRS 3100 psi (21.4 MPa), stainless 3400, green FRP 3800, ABS 600, PC 850 psi. Work/fixture/full-cure times from the June 2024 DP810NS TDS (same 10 / 20 min as the 2019 selector for DP810).",
-        source: "3M Scotch-Weld DP810 TDS, February 2016; DP810NS TDS, June 2024; 3M Structural Adhesives selector, January 2019" },
-      { id: "dp420", name: "3M Scotch-Weld DP420", type: "2K toughened epoxy, 2:1",
-        shear: 27.8, shearSub: "sandblasted aluminium, ASTM D1002 / ISO 4587, 7 d @ 23 °C",
-        shears: { aluminium: 27.8, steel: 19.6, abs: 3, pc: 4.2, gfrp: 7.3, cfrp: 39.3 },
-        work: "20 min open time (10 g mixed work life ~20 min @ 23 °C)", fixture: "2.5 h to handling strength @ 23 °C",
-        cure: "7 d @ 23 °C (quoted OLS)",
-        temp: "— (no single rating; TDS OLS 12.9 MPa @ 49 °C, 2.7 MPa @ 82 °C on Al)",
-        ok: ["aluminium", "steel", "cfrp", "gfrp", "abs", "pc"],
-        notes: "Structural epoxy for metals and composites. CRS 19.6 MPa, FRP (epoxy) 39.3 (often substrate-limited), FRP (polyester) 7.3, ABS 3, PC 4.2, PVC 1.2 MPa. FRP (epoxy) is used as a carbon-fibre-composite proxy — the TDS does not say 'CFRP' by name.",
-        source: "3M Scotch-Weld DP420 Black TDS, December 2025" },
-      { id: "dp8005", name: "3M Scotch-Weld DP8005", type: "2K acrylic for LSE plastics, 10:1",
-        shear: 15.7, shearSub: "aluminium (off-white), ASTM D1002, 2275 psi, ≥ 48 h @ 23 °C",
-        shears: { aluminium: 15.7, steel: 17.2, abs: 10.5, pc: 5.9, lse: 7.6, gfrp: 17.1 },
-        work: "2.5–3 min @ 23 °C", fixture: "2–3 h to handling (≥ 50 psi) @ 23 °C",
-        cure: "8–24 h @ 23 °C",
-        temp: "— (no single rating on the 2016 TDS)",
-        ok: ["aluminium", "steel", "gfrp", "abs", "pc", "lse"],
-        notes: "Bonds many PP, PE and TPO grades without special prep. HDPE / PP ~1100 psi (7.6 MPa, substrate failure); CRS 2500 psi (17.2 MPa); green FRP 2475 psi. Off-white figures quoted. PTFE is poor (~250 psi AF).",
-        source: "3M Scotch-Weld DP8005 TDS, February 2016" },
-      { id: "vhb4950", name: "3M VHB 4950 family", type: "Acrylic foam tape, firm, general-purpose (HSE)",
-        shear: 0.55, shearSub: "stainless steel, ASTM D1002 / ISO 4587, 72 h dwell @ 23 °C (80 psi / 550 kPa)",
-        shears: { steel: 0.55, aluminium: 0.55 },
-        work: "— (pressure-sensitive)", fixture: "Immediate tack; typical OLS after 72 h dwell",
-        cure: "Typical performance after 72 h @ 23 °C",
-        temp: "Long-term 93 °C; short-term 149 °C; check min. application temp. on the TDS",
+        shear: null, shearSub: "this official TDS revision has no overlap-shear table",
+        shears: {},
+        work: "10 min (TDS worklife @ 23 °C)",
+        fixture: "20 min set time (TDS, to 0.3 MPa / 50 psi overlap shear)",
+        cure: "8–24 h (TDS: time to ≥ 80 % of ultimate strength, aluminium–aluminium OLS)",
+        temp: "— (no single service-temperature rating on this TDS)",
+        ok: ["aluminium", "steel", "abs", "pc"],
+        notes: "Official September 2024 TDS for DP810 (not Black, not NS). Product description: bonds most metals, ceramics, rubbers, plastics and wood; features include “Bonds stainless steel.” Surface-prep section names steel and aluminium. No numeric OLS table is given on this revision, so shear is left as — (the DP810 Black TDS has its own table and is listed separately).",
+        sourceMfr: "3M", sourceTitle: "Technical Data Sheet, 3M Scotch-Weld Low Odor Acrylic Adhesive DP810",
+        sourceRev: "Last Revision Date: September, 2024 (supersedes June, 2024)",
+        sourceUrl: "https://multimedia.3m.com/mws/media/2365920O/3m-scotch-weld-low-odor-acrylic-adhesive-dp810.pdf" },
+      { id: "dp810b", name: "3M Scotch-Weld DP810 Black", type: "2K low-odour acrylic, 1:1",
+        shear: 29, shearSub: "TDS value, etched aluminium, ASTM D1002 / ISO 4587, 24 h dwell @ 23 °C",
+        shears: { aluminium: 29, steel: 21, abs: 4.1 },
+        work: "10 min (TDS worklife @ 23 °C)",
+        fixture: "20 min set time (TDS, to 0.3 MPa / 50 psi overlap shear)",
+        cure: "— (no single “time to full cure” on this TDS; OLS quoted at 24 h @ 23 °C). Heat: 30 min @ 49 °C or 10 min @ 66 °C for full cure (TDS)",
+        temp: "— (no single service-temperature rating on this TDS)",
+        ok: ["aluminium", "steel", "abs"],
+        notes: "Also on this TDS (ASTM D1002 / ISO 4587, 24 h @ 23 °C): Al light abrasion and solvent clean 27 MPa, CRS 21, stainless 23, PMMA 7.6, PVC 6.9, ABS 4.1 MPa. Cure-profile OLS on etched Al: 15.5 / 18.9 / 20.0 / 24.8 MPa at 1 / 2 / 4 / 24 h. PC is not in the OLS table. Values are from the DP810 Black TDS only, not from DP810 or DP810NS.",
+        sourceMfr: "3M", sourceTitle: "Technical Data Sheet, 3M Scotch-Weld Low Odor Acrylic Adhesive DP810 Black",
+        sourceRev: "Last Revision Date: September, 2024 (supersedes June, 2024)",
+        sourceUrl: "https://multimedia.3m.com/mws/media/2365870O/3m-scotch-weld-low-odor-acrylic-adhesive-dp810-black.pdf" },
+      { id: "dp420", name: "3M Scotch-Weld DP420 Black", type: "2K toughened epoxy, 2:1",
+        shear: 27.8, shearSub: "TDS value, sandblasted aluminium, ASTM D1002 / ISO 4587, 7 d @ 23 °C",
+        shears: { aluminium: 27.8, steel: 19.6, abs: 3, pc: 4.2 },
+        work: "20 min open time (TDS)",
+        fixture: "2.5 h to handling strength @ 23 °C (TDS)",
+        cure: "7 d @ 23 °C (quoted OLS); no single “full cure” time on the TDS",
+        temp: "— (TDS gives a hot-strength table, no single service rating). Al OLS after 7 d: 12.9 MPa @ 49 °C, 2.7 MPa @ 82 °C",
+        ok: ["aluminium", "steel", "abs", "pc"],
+        notes: "Official TDS is titled DP420 Black (December 2025). Also on this TDS (7 d @ 23 °C unless noted): Al etched 30.2 MPa at 24 h (the PDF prints the unit as “mPa.s” next to 4380 lb/in²), CRS 19.6, FRP (Epoxy) 39.3, FRP (Polyester) 7.3, ABS 3, PMMA 1.7, PC 4.2, PVC 1.2 MPa. FRP (Epoxy) is not used as a CFRP value — the TDS does not name CFRP. Shore D 81 (ASTM D2240). Tg 81 °C (DSC).",
+        sourceMfr: "3M", sourceTitle: "Technical Data Sheet, 3M Scotch-Weld Epoxy Adhesive DP420 Black",
+        sourceRev: "V-7 English-US, Last Revision Date: December, 2025 (supersedes April, 2025)",
+        sourceUrl: "https://multimedia.3m.com/mws/media/2365743O/3m-scotch-weld-epoxy-adhesive-dp420-black.pdf" },
+      { id: "dp8005", name: "3M Scotch-Weld DP8005 Off White", type: "2K acrylic for LSE plastics, 10:1",
+        shear: null, shearSub: "this official TDS revision has no overlap-shear table (HDPE T-peel only)",
+        shears: {},
+        work: "2.5–3 min (TDS worklife @ 23 °C)",
+        fixture: "2–3 h to handling strength (TDS, to 0.3 MPa / 50 psi)",
+        cure: "8–24 h (TDS: time to ≥ 80 % of ultimate strength, aluminium–aluminium OLS)",
+        temp: "— (no single service-temperature rating on this TDS)",
+        ok: ["aluminium", "steel", "lse"],
+        notes: "TDS names polypropylene, polyethylene and TPOs (no special prep), and gives surface-prep directions for steel and aluminium. Cured-performance section has T-peel on HDPE, not an OLS table, so shear is —. Shore D 55 (ASTM D2240, 23 °C). The February 2016 family TDS (and selector-guide OLS figures) were not used. Official 3M TDS obtained via a Tewipack Uhl GmbH mirror of the unaltered English-US February 2025 document.",
+        sourceMfr: "3M", sourceTitle: "Technical Data Sheet, 3M Scotch-Weld Structural Plastic Adhesive DP8005 Off White",
+        sourceRev: "Last Revision Date: February, 2025 (supersedes September, 2024)",
+        sourceUrl: "https://tewipack.de/?docuware_download=27907",
+        sourceVia: "Official 3M TDS obtained via Tewipack Uhl GmbH mirror" },
+      { id: "vhb4950", name: "3M VHB 4950", type: "Acrylic foam tape, firm, general-purpose (HSE)",
+        shear: 0.55, shearSub: "TDS value, stainless steel, ASTM D1002 / ISO 4587, 72 h dwell @ 23 °C (550 kPa / 80 psi)",
+        shears: { steel: 0.55 },
+        work: "— (pressure-sensitive)",
+        fixture: "Immediate handling strength on contact (TDS)",
+        cure: "OLS quoted after 72 h dwell @ 23 °C (TDS)",
+        temp: "Long-term 93 °C; short-term 149 °C (TDS). Ideal application 21–38 °C; minimum for most VHB tapes 10–15 °C (TDS general note, not a 4950-only line item)",
         ok: ["aluminium", "steel"],
-        notes: "HSE family (metals, glass, easier plastics and paints). Not intended as a general LSE (PP/PE) tape — use the 5952 family for broader surface energy. Dynamic overlap shear is modest compared with structural adhesives. 1.1 mm typical thickness (4950).",
-        source: "3M VHB Tape 4950 TDS, September 2024" },
-      { id: "vhb5952", name: "3M VHB 5952 family", type: "Acrylic foam tape, very conformable, modified acrylic",
-        shear: 0.55, shearSub: "stainless steel, ASTM D1002 / ISO 4587, 72 h dwell @ 23 °C (80 psi / 550 kPa)",
-        shears: { steel: 0.55, aluminium: 0.55, abs: 0.55, pc: 0.55, lse: 0.55 },
-        work: "— (pressure-sensitive)", fixture: "Immediate tack; typical OLS after 72 h dwell",
-        cure: "Typical performance after 72 h @ 23 °C",
-        temp: "Long-term 93 °C; short-term 149 °C; min. application 10 °C",
+        notes: "TDS: 0.045 in (1.1 mm) white tape; general-purpose acrylic on both sides; bonds a broad range of high surface-energy substrates including metals, glass and easier-to-bond paints and plastics. Named test substrates: stainless steel (OLS 550 kPa) and aluminium (normal tensile 970 kPa, ASTM D897) — the tensile figure is not used as shear. Not treated as an LSE (PP/PE) tape.",
+        sourceMfr: "3M", sourceTitle: "Technical Data Sheet, 3M VHB Tape - Specialty Tape 4950",
+        sourceRev: "Last Revision Date: September, 2024 (supersedes June, 2024)",
+        sourceUrl: "https://multimedia.3m.com/mws/media/2366469O/3m-vhb-tape-specialty-tape-4950.pdf" },
+      { id: "vhb5952", name: "3M VHB 5952", type: "Acrylic foam tape, very conformable, modified acrylic",
+        shear: 0.55, shearSub: "TDS value, stainless steel, ASTM D1002 / ISO 4587, 72 h dwell @ 23 °C (550 kPa / 80 psi)",
+        shears: { steel: 0.55 },
+        work: "— (pressure-sensitive)",
+        fixture: "Immediate handling strength on contact (TDS)",
+        cure: "OLS quoted after 72 h dwell @ 23 °C (TDS)",
+        temp: "Long-term 93 °C; short-term 149 °C; minimum application 10 °C (TDS)",
         ok: ["aluminium", "steel", "abs", "pc", "lse"],
-        notes: "Bonds a broad range of high, medium and medium/low surface-energy substrates, including many plastics, paints and powder coats. Same 550 kPa dynamic shear on SS as 4950. Conformable foam helps slightly mismatched surfaces. 1.1 mm typical (5952).",
-        source: "3M VHB Tape 5952 TDS, September 2024" }
+        notes: "TDS: 0.045 in (1.1 mm) black tape. Bonds a broad range of high, medium and medium/low surface-energy substrates including metals, glass and a wide variety of plastics and paints, including many powder-coated paints. Named strength tests: stainless steel OLS 550 kPa and aluminium normal tensile 480 kPa (ASTM D897) — tensile is not used as shear. ABS / PC / LSE are included from that substrate wording, not from substrate-specific OLS numbers.",
+        sourceMfr: "3M", sourceTitle: "Technical Data Sheet, 3M VHB Tape 5952",
+        sourceRev: "Last Revision Date: September, 2024 (supersedes August, 2024)",
+        sourceUrl: "https://multimedia.3m.com/mws/media/2366487O/3m-vhb-tape-5952.pdf" }
     ],
+    hasShear: function (x) { return typeof x === "number" && isFinite(x); },
     byId: function (id) { for (var i = 0; i < adh.ITEMS.length; i++) if (adh.ITEMS[i].id === id) return adh.ITEMS[i]; return null; },
     matById: function (id) { for (var i = 0; i < adh.MATS.length; i++) if (adh.MATS[i].id === id) return adh.MATS[i]; return null; },
     forceN: function (areaMm2, mpa, sf) { return areaMm2 * mpa / sf; },
     // Rank: listed TDS shear on both (or one if same) first, then class compatibility, then strength.
     suggest: function (a, b) {
       return adh.ITEMS.map(function (it) {
-        var sa = it.shears[a], sb = it.shears[b];
+        if (it.primer) return null;
+        var sa = it.shears[a], sb = it.shears[b], hs = adh.hasShear;
         var oka = it.ok.indexOf(a) >= 0, okb = it.ok.indexOf(b) >= 0;
         var used, why, rank;
-        if (isFinite(sa) && isFinite(sb)) {
+        if (hs(sa) && hs(sb)) {
           used = Math.min(sa, sb);
           why = (a === b) ? (used + " MPa on " + a) : (used + " MPa (lower of " + sa + " / " + sb + " MPa)");
           rank = 3000 + used;
-        } else if (isFinite(sa) && okb) {
+        } else if (hs(sa) && okb) {
           used = sa; why = sa + " MPa on " + a + " (no TDS number for " + b + ")"; rank = 2000 + used;
-        } else if (isFinite(sb) && oka) {
+        } else if (hs(sb) && oka) {
           used = sb; why = sb + " MPa on " + b + " (no TDS number for " + a + ")"; rank = 2000 + used;
         } else if (oka && okb) {
-          used = it.shear; why = "Listed for both; using primary " + it.shear + " MPa (" + it.shearSub + ")"; rank = 1000 + used;
+          if (hs(it.shear)) {
+            used = it.shear;
+            why = "TDS names both; primary TDS shear " + it.shear + " MPa (" + it.shearSub + ")";
+            rank = 1000 + used;
+          } else {
+            used = null;
+            why = "TDS names both substrates; no overlap-shear number on this TDS revision";
+            rank = 500;
+          }
         } else {
           return null;
         }
@@ -933,63 +1005,92 @@ var ET = (function () {
   };
 
   var potting = {
-    // Typical / rough chemistry-class values, not product specifications.
+    // Named products only. Every number is from that product's official TDS; "—" if the TDS is silent.
     DEFAULTS: [
-      { id: "epox-std", custom: false, name: "General-purpose epoxy", chem: "Unfilled rigid epoxy",
-        hard: "Shore D 80–90 (typ.)", k: "0.2–0.3 (typ. 0.25)", temp: "−40 to 130 °C typ. (often limited by Tg ≈ 80–130 °C)",
-        cure: "2K, room temperature or heat",
-        uses: "Transformers, coils, general electronics, connectors.",
-        notes: "Rigid, good chemical and fuel resistance. Cure shrink and CTE mismatch can stress fragile parts." },
-      { id: "epox-tc", custom: false, name: "Thermally conductive epoxy", chem: "Ceramic-filled epoxy",
-        hard: "Shore D 85–90 (typ.)", k: "0.8–1.5 typ. (some > 2)", temp: "−40 to 150 °C typ.",
-        cure: "2K, room temperature or heat",
-        uses: "Power electronics, LED drivers, DC-DC converters, modules that need a heat path.",
-        notes: "Fillers raise thermal conductivity and viscosity. Ceramic-filled grades stay electrically insulating; metal-filled grades may not." },
-      { id: "epox-flex", custom: false, name: "Toughened / semi-flexible epoxy", chem: "Toughened epoxy",
-        hard: "Shore D 40–70 (typ.)", k: "~0.25", temp: "−40 to 120 °C typ.",
-        cure: "2K",
-        uses: "Boards with larger components, some connectors, where a rigid epoxy would crack.",
-        notes: "Less brittle than standard epoxy, still stiffer than typical PU or silicone." },
-      { id: "pu-std", custom: false, name: "Polyurethane potting", chem: "Semi-flexible polyurethane",
-        hard: "Shore A 60–80, or D 30–50 (typ.)", k: "0.2–0.3 unfilled; filled 0.5–1", temp: "−40 to 105 °C typ. (some 120–130 °C)",
-        cure: "2K; isocyanate side often moisture-sensitive",
-        uses: "Automotive electronics, sensors, cable joints, vibration environments.",
-        notes: "Better shock and vibration than epoxy. Risk of hydrolysis in hot-wet service; check oil and fuel resistance on the TDS." },
-      { id: "pu-soft", custom: false, name: "Soft polyurethane", chem: "Soft PU / gel-like polyurethane",
-        hard: "Shore A 10–40, or Shore 00 (typ.)", k: "~0.2", temp: "−40 to 90 °C typ.",
-        cure: "2K",
-        uses: "Delicate assemblies and low-stress encapsulating; some rework possible.",
-        notes: "Low stress on components. Chemically weaker than rigid epoxy." },
-      { id: "pu-auto", custom: false, name: "Automotive electronics PU", chem: "Polyurethane (ECU / module class)",
-        hard: "Shore A 50–80 typ.", k: "0.2–0.8 typ.", temp: "−40 to 125 °C typ. (underhood grades vary)",
-        cure: "2K",
-        uses: "ECU / BCM-style modules, under-dash and milder underhood electronics.",
-        notes: "Typical automotive choice for vibration and thermal cycling. Confirm oil, fuel and hydrolysis ratings on the TDS. Typical values, not a named product." },
-      { id: "sil-add", custom: false, name: "Addition-cure silicone rubber", chem: "Platinum RTV silicone",
-        hard: "Shore A 20–50 typ.", k: "~0.2 unfilled", temp: "−50 to 200 °C typ.",
-        cure: "2K addition (platinum); no cure byproduct",
-        uses: "Underhood electronics, sensors, LED, high-temperature assemblies.",
-        notes: "Excellent high-temperature flexibility. Cure is inhibited by sulphur, tin soaps, amines and some rubbers. A primer is often needed for adhesion." },
-      { id: "sil-cond", custom: false, name: "Condensation-cure silicone", chem: "Tin-cure / moisture RTV silicone",
-        hard: "Shore A 20–50 typ.", k: "~0.2", temp: "−50 to 180 °C typ.",
-        cure: "1K or 2K condensation (alcohol byproduct)",
-        uses: "General sealing and potting where addition-cure inhibition is a risk; shallower sections.",
-        notes: "The alcohol byproduct can corrode or bubble in deep or sealed sections. 1K tubes are common." },
-      { id: "sil-gel", custom: false, name: "Silicone gel", chem: "Soft silicone gel",
-        hard: "Shore 00 20–50 typ.", k: "~0.2 (filled 0.4–1)", temp: "−50 to 180–200 °C typ.",
-        cure: "2K addition",
-        uses: "Bare die, wire-bond protection, fragile sensors.",
-        notes: "Very low stress; not structural. Optical / transparent grades exist." },
-      { id: "sil-tc", custom: false, name: "Thermally conductive silicone", chem: "Filled silicone rubber",
-        hard: "Shore A 20–70 typ.", k: "0.8–2 typ. (some higher)", temp: "−45 to 200 °C typ.",
-        cure: "2K addition (sometimes 1K)",
-        uses: "Power modules, ECU, LED, potting that must also spread heat.",
-        notes: "Combines the silicone temperature range with a better heat path. Usually still electrically insulating if ceramic-filled." },
-      { id: "sil-auto", custom: false, name: "Automotive high-temp silicone", chem: "Silicone (coils / underhood class)",
-        hard: "Shore A 30–60 typ.", k: "0.2–1 typ.", temp: "−40 to 180–200 °C typ.",
-        cure: "2K addition typ.",
-        uses: "Ignition coils, underhood sensors and electronics where PU or epoxy temperature is not enough.",
-        notes: "Typical chemistry-class choice for high underhood temperature. Confirm oil resistance on the TDS. Typical values, not a named product." }
+      { id: "mg832b", custom: false, name: "MG Chemicals 832B", chem: "Black epoxy, 2-part",
+        hard: "Shore D 80 (ASTM D2240)", k: "0.3 (ASTM E1461, 25 °C)",
+        temp: "Service −40 to 140 °C; intermittent 175 °C (TDS)",
+        cure: "24 h at room temperature, or 1 h @ 65 °C / 30 min @ 80 °C / 20 min @ 100 °C (TDS). Working time 3 h 15 min (100 g)",
+        uses: "Printed circuit boards and electronic assemblies (TDS: encapsulating and potting compound).",
+        notes: "TDS: general-purpose rigid 2-part black epoxy; low mixed viscosity; electrical insulation; protection from static discharge, vibration, abrasion, thermal shock, humidity, salt water, fungus and many harsh chemicals. Solvent-free. Tg 49 °C (ASTM E1545).",
+        source: "MG Chemicals, Technical Data Sheet 832B Black Epoxy, Encapsulating & Potting Compound, 29 April 2026 / Ver. 5.4. https://www.mgchemicals.com/downloads/tds/tds-832b-2parts.pdf" },
+      { id: "mg832hd", custom: false, name: "MG Chemicals 832HD", chem: "Black 1:1 epoxy, 2-part",
+        hard: "Shore D 80 (ASTM D2240)", k: "0.3 (ASTM E1461, 25 °C)",
+        temp: "Service −40 to 150 °C; intermittent −50 to 175 °C (TDS). Note: >65 °C may affect clarity",
+        cure: "24 h at room temperature, or 2 h @ 65 °C / 1 h @ 80 °C / 20 min @ 100 °C (TDS). Working time 45 min (100 g)",
+        uses: "Printed circuit boards and electronic assemblies (TDS: encapsulating and potting compound).",
+        notes: "TDS: black, rigid, 2-part epoxy, 1:1 by volume; low mixed viscosity 4 100 cP; adhesion to metals, composites, glass, ceramics and many plastics. Solvent-free. Tg 41 °C (ASTM E1545).",
+        source: "MG Chemicals, Technical Data Sheet 832HD Black 1:1 Epoxy, Encapsulating & Potting Compound, 01 June 2026 / Ver. 4.3. https://www.mgchemicals.com/downloads/tds/tds-832hd-2parts.pdf" },
+      { id: "mg834ath", custom: false, name: "MG Chemicals 834ATH", chem: "Flame-retardant thermally conductive epoxy, 2-part",
+        hard: "Shore D 85 (TDS: 85D, Shore D durometer)", k: "0.37 (ASTM E 1461, 25 °C)",
+        temp: "Constant service −40 to 175 °C (TDS)",
+        cure: "Full cure 24 h @ 22 °C, or 1 h @ 80 °C (TDS; 100 °C full cure “to be determined”). Working life 2 h @ 22 °C",
+        uses: "Printed circuit boards and electronic assemblies (TDS: encapsulating and potting compound).",
+        notes: "TDS: black, flame-retardant, thermally conductive two-part epoxy. Certified UL 94V-0 (File # E334302); compliant with UL 746A. Convenient 2:1 volume mix. Specifications are for samples cured at 65 °C for 1 hour (TDS note).",
+        source: "MG Chemicals, Technical Data Sheet 834ATH Flame Retardant Epoxy, Encapsulating & Potting Compound, 12 February 2018 / Ver. 2.04. https://www.mgchemicals.com/downloads/tds/tds-834ath-2parts.pdf" },
+      { id: "stycast-2651-40", custom: false, name: "LOCTITE STYCAST 2651-40 W1 CAT 9", chem: "Epoxy encapsulant with LOCTITE CAT 9",
+        hard: "Shore D 90 (TDS, with CAT 9)", k: "0.48 (TDS, W/(m-K), with CAT 9)",
+        temp: "— (TDS states intermittent operating temperature −40 to +150 °C; no continuous rating given)",
+        cure: "16–24 h @ 25 °C, or 4–6 h @ 45 °C, or 1–2 h @ 65 °C (TDS). For optimum performance, post-cure 4–6 h at the highest expected use temperature. Work life 45 min, 100 g @ 25 °C",
+        uses: "Potting and encapsulation; TDS: general-purpose applications, excellent adhesion to a wide variety of substrates; readily machined with carbide tools when fully cured.",
+        notes: "Values are for LOCTITE STYCAST 2651-40 W1 with LOCTITE CAT 9 only (mix 100 : 9 by weight). The TDS notes the resin can be used with other catalysts — those figures are not used here.",
+        source: "Henkel, Technical Data Sheet, LOCTITE STYCAST 2651-40 W1 CAT 9, May 2019. https://datasheets.tdx.henkel.com/LOCTITE-STYCAST-2651-40-W1-CAT-9-en_GL.pdf" },
+      { id: "stycast-us8000", custom: false, name: "LOCTITE STYCAST US 8000", chem: "Polyurethane, 2-part",
+        hard: "Shore A 89 (TDS)", k: "0.3 (TDS, W/m-K)",
+        temp: "−40 to +140 °C (TDS operating temperature). UL RTI 140 °C",
+        cure: "Recommended: 48 h @ 25 °C, or 2 h @ 60 °C, or 30 min @ 85 °C (TDS). Complete cure after 2 weeks @ 25 °C. Pot life @ 25 °C: 10 min to 10 Pa·s, 25 min to 100 Pa·s",
+        uses: "Potting and encapsulating. Typical assembly applications (TDS): transformers, PCBs and other insulating applications.",
+        notes: "TDS product benefits: good self-levelling, low ionic content to reduce Ag migration, UL 94 V0, UL RTI 140 °C. Room-temperature or heat cure.",
+        source: "Henkel LOCTITE, Technical Data Sheet, LOCTITE STYCAST US 8000, October 2025. https://datasheets.tdx.henkel.com/LOCTITE-STYCAST-US-8000-en_GL.pdf" },
+      { id: "stycast-us5005", custom: false, name: "LOCTITE STYCAST US 5005", chem: "Polyurethane, 2-part",
+        hard: "Shore A 83 (TDS)", k: "0.44 (TDS, W/(m-K))",
+        temp: "— (no operating-temperature range on the TDS; it states the material maintains outstanding electrical properties up to 150 °C)",
+        cure: "Recommended 48 h @ 25 °C; alternate 4–5 h @ 66 °C (TDS). Working time 60 min (200 g @ 25 °C); gel time 2–2.5 h (200 g @ 25 °C)",
+        uses: "Encapsulation and potting (TDS application).",
+        notes: "TDS product benefits: flexible; hydrolytic stability. Mix 10 : 100 by weight (Part A : Part B).",
+        source: "Henkel, Technical Data Sheet, LOCTITE STYCAST US 5005, May 2020. https://datasheets.tdx.henkel.com/LOCTITE-STYCAST-US-5005-en_GL.pdf" },
+      { id: "el-ur5041", custom: false, name: "Electrolube UR5041", chem: "Polyurethane resin, 2-part",
+        hard: "Shore A 85 (TDS)", k: "0.35 (TDS, W/m.K)",
+        temp: "−60 to 125 °C; short-term +130 °C / 30 min (TDS, application and geometry dependent)",
+        cure: "24 h @ 23 °C, or 4 h @ 60 °C (TDS). Usable life 20 min @ 20 °C; gel time 60 min @ 23 °C",
+        uses: "TDS features: excellent resistance to sea water — ideal for marine environments; good low-temperature performance; high toughness and tear resistance; excellent oxidation resistance.",
+        notes: "Official Electrolube / MacDermid Technical Data Sheet, Issue 03 February 2022, obtained via an Ulbrich Group mirror of the unaltered Electrolube TDS.",
+        source: "Electrolube (MacDermid), Technical Data Sheet Electrolube UR5041 Polyurethane Resin, Issue 03 February 2022. Official TDS obtained via Ulbrich Group mirror: https://www.ulbrich-group.com/chemical-technical-products/TDS_ELECTROLUBE-UR-5041_eng.pdf" },
+      { id: "sylgard-184", custom: false, name: "SYLGARD 184", chem: "Polydimethylsiloxane elastomer, 2-part, 10:1",
+        hard: "Shore A 43 (TDS durometer)", k: "0.27 (TDS, W/m °K; also 0.15 btu/hr ft °F)",
+        temp: "TDS useful-temperature section: for most uses, silicone elastomers should be operational over −45 to 200 °C for long periods; test for the particular end-use environment",
+        cure: "48 h @ 25 °C, or 35 min @ 100 °C / 20 min @ 125 °C / 10 min @ 150 °C (TDS). Working time / pot life 1.5 h @ 25 °C",
+        uses: "TDS: suitable for LED lighting encapsulation, power supplies, connectors, sensors, industrial controls, transformers, amplifiers, high voltage resistor packs, relays, adhesive/encapsulant for solar cells, and adhesive handling of beam-lead integrated circuits during processing.",
+        notes: "Official Dow Technical Data Sheet, Form No. 11-3184-01-0224 S2D, © 2017–2024 The Dow Chemical Company. dow.com returned 403; unaltered official TDS obtained via WPI Europe mirror.",
+        source: "Dow, Technical Data Sheet, SYLGARD 184 Silicone Elastomer, Form No. 11-3184-01-0224 S2D, © 2017–2024 The Dow Chemical Company. Official TDS obtained via WPI Europe mirror: https://www.wpi-europe.com/downloads/content/11-3184-01-sylgard-184-elastomer.pdf" },
+      { id: "sylgard-170", custom: false, name: "SYLGARD 170", chem: "Silicone elastomer, 2-part, 1:1, black",
+        hard: "Shore A 47 (TDS durometer)", k: "0.48 (TDS, w/mK; also 0.277 btu/hr ft °F)",
+        temp: "TDS useful-temperature section: for most uses, silicone elastomers should be operational over −45 to 200 °C for long periods; test for the particular end-use environment",
+        cure: "24 h @ 25 °C, or 25 min @ 70 °C / 10 min @ 100 °C (TDS). Working time / pot life 15 min @ 25 °C",
+        uses: "TDS: suitable for use as an encapsulant or potting material. Potential applications: power supplies, connectors, sensors, industrial controls, transformers, amplifiers, high voltage resistor packs, relays.",
+        notes: "Official Dow Technical Data Sheet, Form No. 11-3181-01 F, © 2017 The Dow Chemical Company. UL 94 V-0 and MIL-PRF-23586F (specifically listed material numbers only). Official TDS obtained via Farnell / Ellsworth mirrors (identical PDFs).",
+        source: "Dow, Technical Data Sheet, SYLGARD 170 Silicone Elastomer, Form No. 11-3181-01 F, © 2017 The Dow Chemical Company. Official TDS obtained via Farnell mirror: https://www.farnell.com/datasheets/2868656.pdf" },
+      { id: "stycast-4350", custom: false, name: "LOCTITE STYCAST 4350 with CAT 50-2", chem: "Condensation-cure RTV silicone, 2-part",
+        hard: "Shore A 67 (TDS, as mixed with CAT 50-2)", k: "0.95 (TDS, W/(m-K), as mixed with CAT 50-2)",
+        temp: "−65 to +260 °C (TDS operating temperature)",
+        cure: "16–24 h @ 25 °C, or 2–4 h @ 65 °C (TDS, with CAT 50-2 AMB). Work life 60 min @ 25 °C, 100 g. Post-cure schedule recommended if use above 125 °C is anticipated",
+        uses: "Potting or encapsulation (TDS application).",
+        notes: "Values are for LOCTITE STYCAST 4350 with LOCTITE CAT 50-2 (AMB). TDS: RTV condensation-cure silicone rubber; thermally conductive; room-temperature cure capability. Mix ratio by weight material:catalyst 100 / 0.1 to 0.4.",
+        source: "Henkel, Technical Data Sheet, LOCTITE STYCAST 4350, March 2023. https://datasheets.tdx.henkel.com/LOCTITE-STYCAST-4350-en_GL.pdf" },
+      { id: "stycast-5954", custom: false, name: "LOCTITE STYCAST 5954", chem: "Silicone encapsulant, 2-part, 1:1",
+        hard: "Shore A 85 (TDS)", k: "1.15 (TDS, W/(m-K))",
+        temp: "−65 to 260 °C (TDS operating temperature range)",
+        cure: "20 min @ 150 °C, or 1 h @ 100 °C, or 4 h @ 65 °C, or 2–7 days @ 25 °C (TDS). For optimum performance, post-cure 2 h @ 175 °C. Pot life 90 min, 100 g @ 25 °C",
+        uses: "Encapsulant. Typical assembly applications (TDS): bridge rectifiers, power supplies, thermistors, transformers, thermal probes, pour-in-place thermal pads, heat sinks.",
+        notes: "TDS: highly filled silicone for encapsulating heat-generating devices; can be cured in thick sections over a wide range of temperatures. Product benefits include high thermal conductivity, reversion resistance, non-corrosive, high electrical insulation.",
+        source: "Henkel LOCTITE, Technical Data Sheet, LOCTITE STYCAST 5954, August 2026. https://datasheets.tdx.henkel.com/LOCTITE-STYCAST-5954-en_GL.pdf" },
+      { id: "el-sc3001", custom: false, name: "Electrolube SC3001", chem: "Optically clear two-part silicone resin (moisture-cure)",
+        hard: "Shore A 20 (TDS)", k: "— (thermal conductivity not stated on the TDS)",
+        temp: "−60 to +200 °C; short-term +250 °C / 30 min (TDS, application and geometry dependent)",
+        cure: "24 h @ 23 °C, humidity dependent (TDS). Usable life 30 min @ 20 °C; gel time 2–4 h @ 23 °C (humidity dependent). At a depth greater than 3 cm, may take up to 7 days to achieve full-cure properties",
+        uses: "TDS: optically clear, flexible encapsulating compound; ideal for use in the LED industry where optical clarity is vital; particularly suited to applications where thin films are required due to its moisture-cure nature.",
+        notes: "Official Electrolube Technical Data Sheet, Revision 1: Oct 2013, obtained via an Ulbrich Group mirror of the unaltered Electrolube TDS. Features: excellent resistance to yellowing / UV; low viscosity and low hardness — can be cut or dug out for rework.",
+        source: "Electrolube, Technical Data Sheet SC3001 Silicone Resin, Revision 1: Oct 2013. Official TDS obtained via Ulbrich Group mirror: https://www.ulbrich-group.com/chemical-technical-products/TDS_ELECTROLUBE_SC3001_Optically_Clear_Two_Part_Silicone_Compound_eng.pdf" }
     ]
   };
 
@@ -1493,7 +1594,8 @@ if (typeof module !== "undefined") module.exports = ET;
   var aLock = false;
   function aFillSelects() {
     $("aPick").innerHTML = '<option value="">Custom / no fill</option>' + ET.adh.ITEMS.map(function (it) {
-      return '<option value="' + it.id + '">' + it.name + " — " + it.shear + " MPa</option>";
+      var sh = ET.adh.hasShear(it.shear) ? it.shear + " MPa" : "—";
+      return '<option value="' + it.id + '">' + it.name + " — " + sh + "</option>";
     }).join("");
     var opts = ET.adh.SUBS.map(function (s) { return '<option value="' + s.id + '">' + s.name + "</option>"; }).join("");
     $("aSubA").innerHTML = opts; $("aSubB").innerHTML = opts;
@@ -1519,24 +1621,40 @@ if (typeof module !== "undefined") module.exports = ET;
     if (!it) { $("aPickNote").textContent = ""; return; }
     aLock = true;
     $("aPick").value = id;
-    $("aShear").value = isFinite(shearOverride) ? shearOverride : it.shear;
+    if (it.primer) {
+      aLock = false;
+      $("aPickNote").textContent = it.name + " is a primer, not an adhesive — shear is not filled from this entry.";
+      aShow(it);
+      return;
+    }
+    var sh = ET.adh.hasShear(shearOverride) ? shearOverride : it.shear;
+    if (ET.adh.hasShear(sh)) $("aShear").value = sh;
     aLock = false;
-    $("aPickNote").textContent = it.name + " — " + (isFinite(shearOverride) ? shearOverride + " MPa (pair-specific)" : it.shear + " MPa on " + it.shearSub) + ". Overridable.";
+    if (ET.adh.hasShear(sh)) {
+      $("aPickNote").textContent = it.name + " — " + (isFinite(shearOverride) ? shearOverride + " MPa (pair-specific, TDS)" : it.shear + " MPa, " + it.shearSub) + ". Overridable.";
+    } else {
+      $("aPickNote").textContent = it.name + " — no overlap-shear number on this TDS (" + it.shearSub + "). Enter a tested value.";
+    }
     aShow(it);
     aForce();
   }
   function aShow(it) {
     if (!it) { $("aDet").innerHTML = '<div class="sub">Tap an adhesive in the library or suggester for details.</div>'; return; }
+    var shearTxt = ET.adh.hasShear(it.shear) ? (it.shear + " MPa (" + it.shearSub + ")") : ("— (" + it.shearSub + ")");
+    var src = [it.sourceMfr, it.sourceTitle, it.sourceRev].filter(Boolean).join(". ");
+    if (it.sourceVia) src += ". " + it.sourceVia;
+    var srcHtml = esc(src);
+    if (it.sourceUrl) srcHtml += '. <a href="' + esc(it.sourceUrl) + '">' + esc(it.sourceUrl) + '</a>';
     $("aDet").innerHTML = '<div class="big first" style="font-size:1.2rem">' + esc(it.name) + '</div><div class="sub">' + esc(it.type) + '</div>' +
       '<dl class="kv" style="margin-top:8px">' + [
-        ["Typical shear", it.shear + " MPa  (" + it.shearSub + ")"],
-        ["Working time", it.work],
-        ["Fixture", it.fixture],
+        ["TDS shear", shearTxt],
+        ["Working / open time", it.work],
+        ["Fixture / handling", it.fixture],
         ["Full cure", it.cure],
-        ["Temperature", it.temp],
-        ["Source", it.source]
+        ["Temperature", it.temp]
       ].map(function (p) { return "<dt>" + esc(p[0]) + "</dt><dd>" + esc(p[1]) + "</dd>"; }).join("") + "</dl>" +
-      '<p class="note" style="margin:8px 0 0">' + esc(it.notes) + "</p>";
+      '<p class="note" style="margin:8px 0 0">' + esc(it.notes) + "</p>" +
+      '<p class="note" style="margin:8px 0 0;text-align:left">Source: ' + srcHtml + "</p>";
   }
   function aForce() {
     aModeUI();
@@ -1559,8 +1677,10 @@ if (typeof module !== "undefined") module.exports = ET;
     var names = {}; ET.adh.SUBS.forEach(function (s) { names[s.id] = s.name; });
     if (!rows.length) { $("aSug").innerHTML = '<p class="note">No library adhesive lists both of these substrates on its TDS (PBT in particular is rarely quoted). Consider a primer (Loctite SF 770 under a CA for PP/PE) or a test joint.</p>'; return; }
     $("aSug").innerHTML = rows.map(function (r, i) {
-      return '<button type="button" data-adh="' + r.item.id + '" data-used="' + r.used + '"><strong>' + (i + 1) + ". " + esc(r.item.name) + "</strong>" +
-        '<span class="badge">' + r.used + " MPa</span>" +
+      var usedAttr = ET.adh.hasShear(r.used) ? r.used : "";
+      var usedLbl = ET.adh.hasShear(r.used) ? (r.used + " MPa") : "—";
+      return '<button type="button" data-adh="' + r.item.id + '" data-used="' + usedAttr + '"><strong>' + (i + 1) + ". " + esc(r.item.name) + "</strong>" +
+        '<span class="badge">' + usedLbl + "</span>" +
         '<span class="meta">' + esc(r.item.type) + " · fixture " + esc(r.item.fixture) + " · full cure " + esc(r.item.cure) + "<br>" + esc(r.why) + "</span></button>";
     }).join("");
     if ((a === "lse" || b === "lse") && !rows.some(function (r) { return r.item.id === "dp8005"; })) { /* always included if ok */ }
@@ -1570,8 +1690,9 @@ if (typeof module !== "undefined") module.exports = ET;
   }
   function aLibDraw() {
     $("aLib").innerHTML = ET.adh.ITEMS.map(function (it) {
+      var badge = ET.adh.hasShear(it.shear) ? (it.shear + " MPa") : "—";
       return '<button type="button" data-adh="' + it.id + '"><strong>' + esc(it.name) + "</strong>" +
-        '<span class="badge">' + it.shear + " MPa</span>" +
+        '<span class="badge">' + badge + "</span>" +
         '<span class="meta">' + esc(it.type) + " · " + esc(it.shearSub) + "</span></button>";
     }).join("");
   }
@@ -1580,8 +1701,6 @@ if (typeof module !== "undefined") module.exports = ET;
     if (!m) { $("aMatDet").innerHTML = ""; return; }
     $("aMatDet").innerHTML = '<div class="big first" style="font-size:1.2rem">' + esc(m.name) + "</div>" +
       '<dl class="kv" style="margin-top:8px">' + [
-        ["CTE", m.cte],
-        ["Max service (typical)", m.tmax],
         ["Surface prep", m.prep]
       ].map(function (p) { return "<dt>" + esc(p[0]) + "</dt><dd>" + esc(p[1]) + "</dd>"; }).join("") + "</dl>";
   }
@@ -1653,7 +1772,7 @@ if (typeof module !== "undefined") module.exports = ET;
 
 
   /* ---------- Potting materials ---------- */
-  var POT_KEY = "et-potting";
+  var POT_KEY = "et-potting-v2";
   var potList = [];
   var potSel = null;
   function potLoad() {
@@ -1682,7 +1801,7 @@ if (typeof module !== "undefined") module.exports = ET;
     $("potLib").innerHTML = potList.map(function (it) {
       return '<button type="button" data-pot="' + it.id + '"' + (it.id === id ? ' class="on"' : "") + "><strong>" + esc(it.name) + "</strong>" +
         (it.custom ? '<span class="badge">custom</span>' : "") +
-        '<span class="meta">' + esc(it.chem) + " · " + esc(it.hard) + " · " + esc(it.k) + " W/m·K · " + esc(it.temp) + "</span></button>";
+        '<span class="meta">' + esc(it.chem) + " · " + esc(it.hard) + " · k " + esc(it.k) + (it.k && it.k.indexOf("—") === 0 ? "" : " W/m·K") + " · " + esc(it.temp) + "</span></button>";
     }).join("");
     if (id && potById(id)) $("potPick").value = id;
   }
@@ -1698,7 +1817,7 @@ if (typeof module !== "undefined") module.exports = ET;
     if (!fromForm) {
       $("potName").value = it.name; $("potChem").value = it.chem; $("potHard").value = it.hard;
       $("potK").value = it.k; $("potTemp").value = it.temp; $("potCure").value = it.cure;
-      $("potUses").value = it.uses; $("potNotes").value = it.notes;
+      $("potUses").value = it.uses; $("potNotes").value = it.notes; $("potSource").value = it.source || "";
     }
     $("potDel").disabled = !it.custom;
     [].forEach.call($("potLib").querySelectorAll("[data-pot]"), function (b) { b.classList.toggle("on", b.getAttribute("data-pot") === id); });
@@ -1708,7 +1827,7 @@ if (typeof module !== "undefined") module.exports = ET;
     if (!it) return;
     it.name = $("potName").value; it.chem = $("potChem").value; it.hard = $("potHard").value;
     it.k = $("potK").value; it.temp = $("potTemp").value; it.cure = $("potCure").value;
-    it.uses = $("potUses").value; it.notes = $("potNotes").value;
+    it.uses = $("potUses").value; it.notes = $("potNotes").value; it.source = $("potSource").value;
     potSave(); potPaintList(potSel); potShow(potSel, true);
   }
   potLoad(); potRefresh();
@@ -1717,12 +1836,12 @@ if (typeof module !== "undefined") module.exports = ET;
     var b = e.target.closest && e.target.closest("[data-pot]");
     if (b) { potShow(b.getAttribute("data-pot"), false); $("potPick").value = potSel; potRefresh(potSel); }
   });
-  ["potName","potChem","potHard","potK","potTemp","potCure","potUses","potNotes"].forEach(function (id) {
+  ["potName","potChem","potHard","potK","potTemp","potCure","potUses","potNotes","potSource"].forEach(function (id) {
     $(id).addEventListener("input", potWrite);
   });
   $("potAdd").onclick = function () {
     var id = "c-" + Date.now();
-    potList.push({ id: id, custom: true, name: "Custom potting", chem: "", hard: "", k: "", temp: "", cure: "", uses: "", notes: "" });
+    potList.push({ id: id, custom: true, name: "Custom potting", chem: "", hard: "", k: "", temp: "", cure: "", uses: "", notes: "", source: "" });
     potSave(); potRefresh(id);
   };
   $("potDup").onclick = function () {

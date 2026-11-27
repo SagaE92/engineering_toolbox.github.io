@@ -19,9 +19,9 @@ Live: https://sagae92.github.io/engineering_toolbox.github.io/
 
 ### Mechanical
 
-- **Adhesives**: bond-area force calculator (N / kgf / lbf, optional safety factor); material notes (CTE, typical max temperature, surface prep); a Loctite + 3M library and a substrate-pair suggester. Library values are typical manufacturer TDS figures — verify for the application.
+- **Adhesives**: bond-area force calculator (N / kgf / lbf, optional safety factor); material surface-prep notes; a LOCTITE + 3M library and a substrate-pair suggester. Every adhesive number is taken from that product’s official manufacturer TDS and is cited on the card; “—” means the TDS does not state a single figure. Not design allowables — verify for the application.
 - **Torque**: metric coarse M3–M24 (plus a few UNC sizes) torque helper, T = K × F × d, default preload 75 % of ISO 898-1 proof load (ISO 3506-1 yield for A2-70 / A4-70). Dry K ≈ 0.20, oiled K ≈ 0.15, all editable. The drawing or manufacturer torque is the real target.
-- **Materials**: potting-compound library (epoxies, polyurethanes, silicones/gels, including typical automotive classes). Hardness, thermal conductivity, temperature, cure, uses and notes — typical/rough values, all editable and saved in the browser.
+- **Materials**: potting-compound library of named products (epoxy, polyurethane, silicone) with figures from each official manufacturer TDS (hardness, thermal conductivity, operating temperature, cure, uses as stated by the manufacturer, and a source line). “—” where the TDS is silent. Editable and saved in the browser (storage key versioned so older typical-class values are not reused).
 - **Strain**: strain-gauge bridge calculator (quarter, half-bending, full-bending, torque/shear ±45°). GF and excitation, material E library, input as µε, stress, or force/torque + geometry (cantilever, axial bar, solid shaft). Output mV, mV/V and sensitivity, with a short instrumentation note.
 
 Metric by default; use the Imperial toggle in the header. Results are estimates; verify against datasheets and the applicable standards.
